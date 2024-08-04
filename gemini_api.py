@@ -19,4 +19,4 @@ class GeminiAPI:
     def generate_text(self, prompt):
         model_selected = genai.GenerativeModel(self.model)
         response = model_selected.generate_content(prompt, safety_settings=self.safety_settings)
-        return response.test
+        return response.text
