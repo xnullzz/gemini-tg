@@ -16,12 +16,17 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
+def escape_markdown_v2(text):
+    escape_chars = r'_*\[\]()~`>#+-=|{}.!'
+    return ''.join(['\\' + char if char in escape_chars else char for char in text])
+
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     response = gemini_api.generate_text(prompt=user_message)
+    escaped_response=escape_markdown_v2(text)
     await context.bot.send_message(
             chat_id=update.effective_chat.id, 
-            text=response, 
+            text=escaped_response, 
             parse_mode=ParseMode.MARKDOWN_V2)
 
 # Set up logging
