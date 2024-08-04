@@ -21,12 +21,12 @@ gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     
-    response = gemini_api.generate_text(prompt=user_message)
-    escaped_response=escape_markdown(response, version=2)
+    #response = gemini_api.generate_text(prompt=user_message)
+    #escaped_response=escape_markdown(response, version=2)
 
     await context.bot.send_message(
             chat_id=update.effective_chat.id, 
-            text=escaped_response, 
+            text="*Hello world*", 
             parse_mode=ParseMode.MARKDOWN_V2)
 
 # Set up logging
