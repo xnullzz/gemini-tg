@@ -26,7 +26,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_message(
             chat_id=update.effective_chat.id, 
-            text="*Hello world*", 
+            text="**Hello world**", 
             parse_mode=ParseMode.MARKDOWN_V2)
 
 # Set up logging
