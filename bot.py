@@ -23,7 +23,7 @@ def escape_markdown_v2(text):
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     response = gemini_api.generate_text(prompt=user_message)
-    escaped_response=escape_markdown_v2(text)
+    escaped_response=escape_markdown_v2(response)
     await context.bot.send_message(
             chat_id=update.effective_chat.id, 
             text=escaped_response, 
