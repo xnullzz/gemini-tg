@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from telegram import Update
 from telegram.constants import ParseMode
