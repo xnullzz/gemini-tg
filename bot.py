@@ -17,21 +17,16 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
 def escape_markdown_v2(text):
-    escape_chars = r'_*\[\]()~`>#+-=|{}.!'
-    return ''.join(['\\' + char if char in escape_chars else char for char in text])
+    text = text.replace('\\n', '\n')
+    markdown_chars = r'[\*_\[\]()~`>#\+\-=|{}\.!]'
+    escaped_text = re.sub(markdown_chars, lambda m: '\\' + m.group(0), text)
+    return escaped_text
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
-    #response = gemini_api.generate_text(prompt=user_message)
-    #escaped_response=escape_markdown_v2(response)
-    custom_response = (
-        "Thanks for the test message\\!\n\n"
-        "What would you like me to do with it\\?\n\n"
-        "I can:\n\n"
-        "* **Analyze it:** Tell me what language it\\'s in, how many characters it has, etc.\n"
-        f"* **Translate it:** I can translate something into many different languages.\n"
-        f"* **Use it as a prompt:** Tell me to write a story, poem, or anything else inspired by ho"
-    )
+    
+    response = gemini_api.generate_text(prompt=user_message)
+    escaped_response=escape_markdown_v2(response)
 
     await context.bot.send_message(
             chat_id=update.effective_chat.id, 
