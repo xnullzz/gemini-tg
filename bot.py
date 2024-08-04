@@ -29,8 +29,8 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "What would you like me to do with it\\?\n\n"
         "I can:\n\n"
         "* **Analyze it:** Tell me what language it\\'s in, how many characters it has, etc.\n"
-        f"* **Translate it:** I can translate \"{escaped_response}\" into many different languages.\n"
-        f"* **Use it as a prompt:** Tell me to write a story, poem, or anything else inspired by \"{escaped_response}.\""
+        f"* **Translate it:** I can translate something into many different languages.\n"
+        f"* **Use it as a prompt:** Tell me to write a story, poem, or anything else inspired by ho"
     )
 
     await context.bot.send_message(
