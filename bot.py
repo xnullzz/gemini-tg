@@ -5,6 +5,7 @@ import re
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
+from telegram.helpers import escape_markdown
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -17,17 +18,11 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
-def escape_markdown_v2(text):
-    text = text.replace('\\n', '\n')
-    markdown_chars = r'[\*_\[\]()~`>#\+\-=|{}\.!]'
-    escaped_text = re.sub(markdown_chars, lambda m: '\\' + m.group(0), text)
-    return escaped_text
-
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     
     response = gemini_api.generate_text(prompt=user_message)
-    escaped_response=escape_markdown_v2(response)
+    escaped_response=escape_markdown(response, version=2)
 
     await context.bot.send_message(
             chat_id=update.effective_chat.id, 
