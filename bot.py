@@ -1,7 +1,7 @@
 import logging
 import os
 
-from telegram import Update
+from telegram import Update, ParseMode
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
 # Load environment variables
@@ -18,7 +18,10 @@ gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     response = gemini_api.generate_text(prompt=user_message)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+    await context.bot.send_message(
+            chat_id=update.effective_chat.id, 
+            text=response, 
+            parse_mode=ParseMode.MARKDOWN_V2)
 
 # Set up logging
 logging.basicConfig(
