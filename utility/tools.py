@@ -36,32 +36,16 @@ def apply_hand_points(text: str) -> str:
 
 
 def apply_bold(text: str) -> str:
-    """Replaces markdown bold formatting with HTML bold tags.
-
-    Arguments:
-    text (str): The text to modify.
-
-    Returns:
-    str: The text with markdown bold replaced by HTML tags.
-    """
-    pattern = r"\*\*(.*?)\*\*"
+    """Replaces markdown bold formatting with HTML bold tags."""
+    pattern = r"\*\*(.*?)\*\*"  # No changes here
     replaced_text = re.sub(pattern, r"<b>\1</b>", text)
     return replaced_text
 
-
 def apply_italic(text: str) -> str:
-    """Replaces markdown italic formatting with HTML italic tags.
-
-    Arguments:
-    text (str): The text to modify.
-
-    Returns:
-    str: The text with markdown italic replaced by HTML tags.
-    """
-    pattern = r"(?<!\*)\*(?!\*)(?!\*\*)(.*?)(?<!\*)\*(?!\*)"
+    """Replaces markdown italic formatting with HTML italic tags."""
+    pattern = r"(?<!\*)\*(?!\*\*)(.*?)(?<!\*)\*(?!\*)"  # Updated pattern
     replaced_text = re.sub(pattern, r"<i>\1</i>", text)
     return replaced_text
-
 
 def apply_code(text: str) -> str:
     """Replace markdown code blocks with HTML <pre> tags.
