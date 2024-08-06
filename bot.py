@@ -43,12 +43,9 @@ async def handle_message(message: Message):
     last_chunk_received = False
     user_message = message.text
     response = await gemini_api.generate_text(prompt=user_message)
-    escaped_response = Markdown(response)
-    #escaped_response = escape_markdown(response)
-    #debug
-    #print(escaped_response)
 
     try:
+        escaped_response = escape_markdown(response)
         await bot.reply_to(message, response, parse_mode="MarkdownV2")
 
     except Exception as e:
