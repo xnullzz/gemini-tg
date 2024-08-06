@@ -18,26 +18,28 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
-def escape_markdown_v2(text):
+def escape_markdown_v2(text, version):
     """
-    Escape special characters for Telegram's MarkdownV2.
+    Custom escape function to handle Telegram's MarkdownV2 while preserving bold syntax.
     """
-    escape_chars = r'_*[]()~`>#+-=|{}.!'
-    return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
-
+    if version == 2:
+        escape_chars = r'_[]()~`>#+-=|{}.!'
+        return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
+    return text
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     
     response = gemini_api.generate_text(prompt=user_message)
-    lines = response.split('\n')
 
+    lines = response.split('\n')
     escaped_lines = []
     for line in lines:
-        if line.startswith('*'):
-            escaped_line = '• ' + escape_markdown_v2(line[1:].strip())
+        if line.strip().startswith('*'):  # This is a bullet point
+            # Remove the asterisk, add a bullet point, and escape the rest
+            escaped_line = '• ' + escape_markdown(line.strip()[1:].strip(), version=2)
         else:
-            escaped_line = escape_markdown_v2(line)
+            escaped_line = escape_markdown(line, version=2)
         escaped_lines.append(escaped_line)
     
     escaped_response = '\n'.join(escaped_lines)
