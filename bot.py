@@ -18,6 +18,14 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
+def escape_markdown_v2(text):
+    """
+    Escape special characters for Telegram's MarkdownV2.
+    """
+    escape_chars = r'_*[]()~`>#+-=|{}.!'
+    return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
+
+
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     
