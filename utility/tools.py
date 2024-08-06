@@ -1,4 +1,4 @@
-from re import sub
+import re
 
 def escape_markdown(text):
     # First, replace literal '\n' with actual newline characters
