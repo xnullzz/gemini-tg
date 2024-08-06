@@ -49,7 +49,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         escaped_lines.append(escaped_line)
     
     escaped_response = '\n'.join(escaped_lines)
-
+    print(escaped_response)
     await context.bot.send_message(
             chat_id=update.effective_chat.id, 
             text=escaped_response, 
