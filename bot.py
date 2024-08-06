@@ -46,7 +46,7 @@ async def handle_message(message: Message):
 
     try:
         escaped_response = escape_markdown(response)
-        await bot.reply_to(message, response, parse_mode="MarkdownV2")
+        await bot.reply_to(message, escaped_response, parse_mode="MarkdownV2")
 
     except Exception as e:
         logger.error(f"Error sending message: {e}")
