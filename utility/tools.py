@@ -1,3 +1,5 @@
+from re import sub
+
 def escape_markdown(text):
     # First, replace literal '\n' with actual newline characters
     text = text.replace('\\n', '\n')
