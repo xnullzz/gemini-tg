@@ -7,6 +7,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
 from utility.tools import escape_markdown
+from IPython.display import Markdown
 
 from dotenv import load_dotenv
 
@@ -41,6 +42,7 @@ async def cmd_help(message: Message):
 async def handle_message(message: Message):
     user_message = message.text
     response = await gemini_api.generate_text(prompt=user_message)
+    escaped_response = Markdown(response)
     #escaped_response = escape_markdown(response)
     #debug
     #print(escaped_response)
