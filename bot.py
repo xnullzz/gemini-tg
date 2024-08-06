@@ -48,7 +48,7 @@ async def handle_message(message: Message):
     #print(escaped_response)
 
     try:
-        await bot.reply_to(message, response, parse_mode="MarkdownV2")
+        await bot.reply_to(message, response, parse_mode="HTML")
 
     except Exception as e:
         logger.error(f"Error sending message: {e}")
