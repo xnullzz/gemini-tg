@@ -6,8 +6,7 @@ import telebot
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
-from utility.tools import escape_markdown
-from IPython.display import Markdown
+from utility.tools import format_message
 
 from dotenv import load_dotenv
 
@@ -45,8 +44,8 @@ async def handle_message(message: Message):
     response = await gemini_api.generate_text(prompt=user_message)
 
     try:
-        escaped_response = escape_markdown(response)
-        await bot.reply_to(message, escaped_response, parse_mode="MarkdownV2")
+        escaped_response = format_message(response)
+        await bot.reply_to(message, escaped_response, parse_mode="HTML")
 
     except Exception as e:
         logger.error(f"Error sending message: {e}")
