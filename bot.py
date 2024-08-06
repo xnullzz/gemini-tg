@@ -1,12 +1,11 @@
-import asyncio
+iimport asyncio
 import logging
 import os
+import telebot
+from telebot.async_telebot import AsyncTeleBot
+from telebot.types import Message
 
-from aiogram import Bot, Dispatcher, types
-from aiogram.enums import ParseMode
-from aiogram.filters import Command
-from aiogram.types import Message
-from aiogram.utils.formatting import *
+from untility import escape_markdown
 
 from dotenv import load_dotenv
 
@@ -23,40 +22,38 @@ logger = logging.getLogger(__name__)
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-bot = Bot(token=TELEGRAM_BOT_TOKEN)
-dp = Dispatcher()
-
+bot = AsyncTeleBot(TELEGRAM_BOT_TOKEN)
 gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
 
-@dp.message(Command(commands=['start']))
+@bot.message_handler(commands=['start'])
 async def cmd_start(message: Message):
-    await message.answer("Hello! I'm your Gemini-powered bot.")
+    await bot.reply_to(message, "Hello! I'm your Gemini-powered bot.")
 
 
-@dp.message(Command(commands=['help']))
+@bot.message_handler(commands=['help'])
 async def cmd_help(message: Message):
-    await message.answer("Help message goes here.")
+    await bot.reply_to(message, "Help message goes here.")
 
 
-@dp.message()
+@bot.message_handler(func=lambda message: True)
 async def handle_message(message: Message):
     user_message = message.text
     response = await gemini_api.generate_text(prompt=user_message)
+    escaped_response = escape_markdown(response)
 
     try:
-        # Use aiogram.utils.formatting.Text to handle markdown
-        text = Text(response)
-        await message.answer(text.as_markdown())
+        await bot.reply_to(message, escaped_response, parse_mode="MarkdownV2")
 
     except Exception as e:
         logger.error(f"Error sending message: {e}")
-        await message.answer("I encountered an error while processing your request. Please try again.")
+        await bot.reply_to(message, "I encountered an error while processing your request. Please try again.")
 
 
 async def main():
-    await dp.start_polling(bot)
+    await bot.polling(non_stop=True)
 
 
 if __name__ == '__main__':
     asyncio.run(main())
+
