@@ -5,7 +5,7 @@ import telebot
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
-from utility import escape_markdown
+from utility.tools import escape_markdown
 
 from dotenv import load_dotenv
 
