@@ -22,7 +22,18 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     
     response = gemini_api.generate_text(prompt=user_message)
-    escaped_response=escape_markdown(response, version=2)
+    lines = response.split('\n')
+
+    escaped_lines = []
+    for line in lines:
+        if line.startswith('*'):
+            escaped_line = '• ' + escape_markdown_v2(line[1:].strip())
+        else:
+            escaped_line = escape_markdown_v2(line)
+        escaped_lines.append(escaped_line)
+    
+    escaped_response = '\n'.join(escaped_lines)
+
     print(escaped_response)
 
     await context.bot.send_message(
