@@ -40,6 +40,7 @@ async def cmd_help(message: Message):
 
 @bot.message_handler(func=lambda message: True)
 async def handle_message(message: Message):
+    last_chunk_received = False
     user_message = message.text
     response = await gemini_api.generate_text(prompt=user_message)
     escaped_response = Markdown(response)
@@ -48,12 +49,15 @@ async def handle_message(message: Message):
     #print(escaped_response)
 
     try:
-        await bot.reply_to(message, response, parse_mode="HTML")
+        await bot.reply_to(message, response, parse_mode="MarkdownV2")
 
     except Exception as e:
         logger.error(f"Error sending message: {e}")
         await bot.reply_to(message, "I encountered an error while processing your request. Please try again.")
 
+    if not last_chunk_received:
+                bot.send_chat_action(message.chat.id, 'typing')
+                last_chunk_received = True
 
 async def main():
     await bot.polling(non_stop=True)
