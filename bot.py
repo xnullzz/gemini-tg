@@ -47,7 +47,7 @@ async def handle_message(message: Message):
     try:
         # Use aiogram.utils.formatting.Text to handle markdown
         text = Text(response)
-        await message.answer(**text.as_kwargs())
+        await message.answer(**text.as_markdown())
 
     except Exception as e:
         logger.error(f"Error sending message: {e}")
