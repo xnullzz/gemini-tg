@@ -6,6 +6,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.types import Message
+from aiogram.utils.formatting import *
 
 from dotenv import load_dotenv
 
@@ -44,7 +45,10 @@ async def handle_message(message: Message):
     response = await gemini_api.generate_text(prompt=user_message)
 
     try:
-        await message.answer(response, parse_mode=ParseMode.MARKDOWN_V2)
+        # Use aiogram.utils.formatting.Text to handle markdown
+        text = Text(response)
+        await message.answer(**text.as_kwargs())
+
     except Exception as e:
         logger.error(f"Error sending message: {e}")
         await message.answer("I encountered an error while processing your request. Please try again.")
