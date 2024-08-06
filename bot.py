@@ -20,31 +20,35 @@ gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
 def escape_markdown_v2(text, version):
     """
-    Custom escape function to handle Telegram's MarkdownV2 while preserving bold syntax.
+    Custom escape function to handle Telegram's MarkdownV2 while preserving bold and italic syntax.
     """
     if version == 2:
-        escape_chars = r'_[]()~`>#+-=|{}.!'
-        return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
+        escape_chars = r'[]()>#+=|{}.!'
+        text = re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
+        
+        text = re.sub(r'(?<!\*)\*\*(?!\*)(.+?)(?<!\*)\*\*(?!\*)', r'*\1*', text)
+        text = re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'_\1_', text)
+        text = re.sub(r'(?<!\*)\*\*\*(?!\*)(.+?)(?<!\*)\*\*\*(?!\*)', r'*_\1_*', text)
+        
+        return text
     return text
+
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     
     response = gemini_api.generate_text(prompt=user_message)
-
+    
     lines = response.split('\n')
     escaped_lines = []
     for line in lines:
-        if line.strip().startswith('*'):  # This is a bullet point
-            # Remove the asterisk, add a bullet point, and escape the rest
+        if line.strip().startswith('*') and not line.strip().startswith('**'):
             escaped_line = '• ' + escape_markdown(line.strip()[1:].strip(), version=2)
         else:
             escaped_line = escape_markdown(line, version=2)
         escaped_lines.append(escaped_line)
     
     escaped_response = '\n'.join(escaped_lines)
-
-    print(escaped_response)
 
     await context.bot.send_message(
             chat_id=update.effective_chat.id, 
