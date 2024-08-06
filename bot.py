@@ -52,10 +52,6 @@ async def handle_message(message: Message):
         logger.error(f"Error sending message: {e}")
         await bot.reply_to(message, "I encountered an error while processing your request. Please try again.")
 
-    if not last_chunk_received:
-                bot.send_chat_action(message.chat.id, 'typing')
-                last_chunk_received = True
-
 async def main():
     await bot.polling(non_stop=True)
 
