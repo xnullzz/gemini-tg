@@ -38,10 +38,9 @@ def parse_list_items(md_text):
     return md_text
 
 def parse_paragraphs(md_text):
-    """Wrap text in paragraphs."""
-    # Splitting text into paragraphs by two newlines
+    """Add double newline between paragraphs."""
     paragraphs = md_text.split('\n\n')
-    paragraphs = [f'<p>{para}</p>' for para in paragraphs if not para.startswith('<h') and not para.startswith('->')]
+    paragraphs = [para for para in paragraphs if not para.startswith('<h') and not para.startswith('->')]
     return '\n\n'.join(paragraphs)
 
 def format_message(md_text):
