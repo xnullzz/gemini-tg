@@ -50,17 +50,14 @@ def unescape_html_chars(text: str) -> str:
     return html.unescape(text)
 
 def format_message(md_text: str) -> str:
-    """Convert full Markdown text to HTML."""
+     """Convert full Markdown text to HTML."""
     # Preserve code blocks
     code_blocks: Dict[str, str] = {}
     md_text = re.sub(r'(```[\s\S]+?```)', lambda m: code_blocks.setdefault(f'CODE_BLOCK_{len(code_blocks)}', m.group(1)), md_text)
     
-    # Escape HTML characters, but unescape specific characters
-    md_text = html.escape(md_text)
-    md_text = md_text.replace('&lt;', '<').replace('&gt;', '>')
-    
     # Parse Markdown elements
     md_text = parse_headers(md_text)
+    md_text = parse_code_blocks(md_text)  # Parse code blocks first to avoid conflicts with inline code
     md_text = parse_emphasis(md_text)
     md_text = parse_inline_code(md_text)
     md_text = parse_links(md_text)
@@ -69,13 +66,10 @@ def format_message(md_text: str) -> str:
     
     # Restore and parse code blocks
     for placeholder, block in code_blocks.items():
-        md_text = md_text.replace(placeholder, parse_code_blocks(block))
+        md_text = md_text.replace(placeholder, block)
     
     # Unescape HTML character entities
     md_text = unescape_html_chars(md_text)
-    
-    # Ensure all tags are properly closed
-    md_text = ensure_closed_tags(md_text)
     
     return md_text.strip()
 
