@@ -28,7 +28,8 @@ def parse_code(md_text):
     """Converts markdown code blocks to HTML pre/code blocks with appropriate language classes."""
     def replace_code(match):
         language = match.group(1)
-        code = html.escape(match.group(2))
+        code = match.group(2)
+        # We don't need to escape the code content here as it's already escaped
         return f'<pre><code class="language-{language}">{code}</code></pre>'
     
     return re.sub(r'```(\w+)\n(.*?)\n```', replace_code, md_text, flags=re.DOTALL)
@@ -51,6 +52,14 @@ def parse_paragraphs(md_text):
 
 def format_message(md_text):
     """Convert full Markdown text to HTML."""
+    # First, escape all HTML characters in the entire text
+    md_text = html.escape(md_text)
+    
+    # Now, unescape the backticks for code blocks
+    md_text = md_text.replace('&lt;code&gt;', '<code>').replace('&lt;/code&gt;', '</code>')
+    md_text = md_text.replace('&lt;pre&gt;', '<pre>').replace('&lt;/pre&gt;', '</pre>')
+    
+    # Parse Markdown elements
     md_text = parse_headers(md_text)
     md_text = parse_bold(md_text)
     md_text = parse_italics(md_text)
@@ -58,4 +67,5 @@ def format_message(md_text):
     md_text = parse_links(md_text)
     md_text = parse_list_items(md_text)
     md_text = parse_paragraphs(md_text)
+    
     return md_text
