@@ -56,10 +56,22 @@ def apply_code(text: str) -> str:
     Returns:
     str: The text with markdown code blocks replaced by HTML tags.
     """
-    pattern = r"```([\w]*?)\n([\s\S]*?)```"
-    replaced_text = re.sub(pattern, r"<pre lang='\1'>\2</pre>", text, flags=re.DOTALL)
-    return replaced_text
-
+    pattern = r"```([\w]*)\n([\s\S]*?)```"
+    matches = re.findall(pattern, text, re.DOTALL)
+    
+    for match in matches:
+        lang, code = match
+        if lang:
+            pre_tag = f"<pre lang='{lang}'>"
+        else:
+            pre_tag = "<pre>"
+        
+        # Ensure code content is properly escaped
+        code = escape_html(code)
+        
+        text = text.replace(f"```{lang}\n{code}```", f"{pre_tag}{code}</pre>")
+    
+    return text
 
 def apply_monospace(text: str) -> str:
     """Replaces markdown monospace backticks with HTML <code> tags.
