@@ -30,17 +30,17 @@ gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
 @bot.message_handler(commands=['start'])
 @authorized_only(bot, ALLOWED_USERNAMES)
-async def cmd_start(message: Message):
+async def cmd_start(message: Message) -> None:
     await bot.reply_to(message, "Hello! I'm your Gemini-powered bot.")
 
 @bot.message_handler(commands=['help'])
 @authorized_only(bot, ALLOWED_USERNAMES)
-async def cmd_help(message: Message):
+async def cmd_help(message: Message) -> None:
     await bot.reply_to(message, "Help message goes here.")
 
 @bot.message_handler(func=lambda message: True)
 @authorized_only(bot, ALLOWED_USERNAMES)
-async def handle_message(message: Message):
+async def handle_message(message: Message) -> None:
     user_message = message.text
     response = await gemini_api.generate_text(prompt=user_message)
     escaped_response = format_message(response)
@@ -57,7 +57,7 @@ async def handle_message(message: Message):
         await bot.reply_to(message, "I encountered an error while processing your request. Please try again.")
 
 
-async def main():
+async def main() -> None:
     await bot.polling(non_stop=True)
 
 
