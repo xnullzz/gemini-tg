@@ -1,4 +1,5 @@
 import re
+import html
 
 def parse_headers(md_text):
     """Convert Markdown headers to HTML."""
@@ -25,7 +26,12 @@ def parse_italics(md_text):
 
 def parse_code(md_text):
     """Converts markdown code blocks to HTML pre/code blocks with appropriate language classes."""
-    return re.sub(r'```(\w+)\n(.*?)\n```', r'<pre><code class="language-\1">\2</code></pre>', md_text, flags=re.DOTALL)
+    def replace_code(match):
+        language = match.group(1)
+        code = html.escape(match.group(2))
+        return f'<pre><code class="language-{language}">{code}</code></pre>'
+    
+    return re.sub(r'```(\w+)\n(.*?)\n```', replace_code, md_text, flags=re.DOTALL)
 
 def parse_links(md_text):
     """Convert Markdown links to HTML."""
