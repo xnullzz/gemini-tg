@@ -24,7 +24,7 @@ def parse_italics(md_text):
     """Convert Markdown italics to HTML."""
     return re.sub(r'\*(.*?)\*', r'<em>\1</em>', md_text)
 
-def parse_code(md_text):
+def parse_code_blocks(md_text):
     """Converts markdown code blocks to HTML pre/code blocks with appropriate language classes."""
     def replace_code(match):
         language = match.group(1)
