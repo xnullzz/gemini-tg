@@ -1,3 +1,5 @@
+from telebot.types import Message
+
 def authorized_only(func):
     """Decorator to check if the user is authorized."""
 
