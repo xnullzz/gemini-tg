@@ -28,18 +28,18 @@ ALLOWED_USERNAMES = os.getenv("ALLOWED_USERNAMES", "").split(",")
 bot = AsyncTeleBot(TELEGRAM_BOT_TOKEN)
 gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
-@authorized_only(ALLOWED_USERNAMES)
 @bot.message_handler(commands=['start'])
+@authorized_only(bot, ALLOWED_USERNAMES)
 async def cmd_start(message: Message):
     await bot.reply_to(message, "Hello! I'm your Gemini-powered bot.")
 
-@authorized_only(ALLOWED_USERNAMES)
 @bot.message_handler(commands=['help'])
+@authorized_only(bot, ALLOWED_USERNAMES)
 async def cmd_help(message: Message):
     await bot.reply_to(message, "Help message goes here.")
 
-@authorized_only(ALLOWED_USERNAMES)
 @bot.message_handler(func=lambda message: True)
+@authorized_only(bot, ALLOWED_USERNAMES)
 async def handle_message(message: Message):
     user_message = message.text
     response = await gemini_api.generate_text(prompt=user_message)

@@ -1,6 +1,6 @@
 from telebot.types import Message
 
-def authorized_only(allowed_usernames):
+def authorized_only(bot, allowed_usernames):
     """Decorator to check if the user is authorized."""
 
     def decorator(func):
@@ -9,8 +9,6 @@ def authorized_only(allowed_usernames):
             if username in allowed_usernames:
                 return await func(message, *args, **kwargs)
             else:
-                # Access the bot instance from the decorated function's arguments
-                bot = args[0]  # Assuming the bot instance is the first argument
                 await bot.reply_to(message, "You are not authorized to use this bot.")
         return wrapper
     return decorator
