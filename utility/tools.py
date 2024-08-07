@@ -29,9 +29,15 @@ def parse_code(md_text):
     def replace_code(match):
         language = match.group(1)
         code = match.group(2)
+        # Unescape any HTML entities within the code block
+        code = html.unescape(code)
+        # Re-escape any < or > characters
+        code = code.replace('<', '&lt;').replace('>', '&gt;')
         return f'<pre><code class="language-{language}">{code}</code></pre>'
     
-    return re.sub(r'```(\w+)\n(.*?)\n```', replace_code, md_text, flags=re.DOTALL)
+    # Use negative lookahead to avoid matching nested code blocks
+    pattern = r'```(\w+)\n((?:(?!```).|\n)+)\n```'
+    return re.sub(pattern, replace_code, md_text, flags=re.DOTALL)
 
 def parse_inline_code(md_text):
     """Convert inline code to HTML."""
@@ -66,7 +72,7 @@ def format_message(md_text):
     md_text = parse_headers(md_text)
     md_text = parse_bold(md_text)
     md_text = parse_italics(md_text)
-    md_text = parse_code(md_text)
+    md_text = parse_code(md_text)  # This should come before parse_inline_code
     md_text = parse_inline_code(md_text)
     md_text = parse_links(md_text)
     md_text = parse_list_items(md_text)
