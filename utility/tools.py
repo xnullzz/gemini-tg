@@ -164,7 +164,6 @@ def format_message(text: str) -> str:
 
     return formatted_text
 
-
 def validate_html(html: str) -> bool:
     """Validate the formatted HTML string."""
     # Simple validation to check for unmatched tags
@@ -176,5 +175,9 @@ def validate_html(html: str) -> bool:
         elif stack and stack[-1][1:] == tag[2:]:
             stack.pop()
         else:
+            print(f"Unmatched tag found: {tag}")
+            print(f"Current stack: {stack}")
             return False
+    if len(stack) != 0:
+        print(f"Unmatched opening tags: {stack}")
     return len(stack) == 0
