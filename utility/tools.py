@@ -1,67 +1,56 @@
 import re
 
-# Function to convert headers
-def convert_headers(text):
-    # MarkdownV2 headers are indicated by one to six hash (#) symbols
-    for i in range(6, 0, -1):
-        header_pattern = re.compile(rf'{"#" * i} (.+)')
-        text = header_pattern.sub(rf'<h{i}>\1</h{i}>', text)
-    return text
+def parse_headers(md_text):
+    """Convert Markdown headers to HTML."""
+    # Pattern for headers (up to 6 levels)
+    header_patterns = [
+        (re.compile(r'###### (.*)'), r'<h6>\1</h6>'),
+        (re.compile(r'##### (.*)'), r'<h5>\1</h5>'),
+        (re.compile(r'#### (.*)'), r'<h4>\1</h4>'),
+        (re.compile(r'### (.*)'), r'<h3>\1</h3>'),
+        (re.compile(r'## (.*)'), r'<h2>\1</h2>'),
+        (re.compile(r'# (.*)'), r'<h1>\1</h1>')
+    ]
+    for pattern, replacement in header_patterns:
+        md_text = pattern.sub(replacement, md_text)
+    return md_text
 
-# Function to convert bold text
-def convert_bold(text):
-    bold_pattern = re.compile(r'\*\*(.+?)\*\*')
-    text = bold_pattern.sub(r'<b>\1</b>', text)
-    return text
+def parse_bold(md_text):
+    """Convert Markdown bold text to HTML."""
+    return re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', md_text)
 
-# Function to convert italic text
-def convert_italic(text):
-    italic_pattern = re.compile(r'\*(.+?)\*')
-    text = italic_pattern.sub(r'<i>\1</i>', text)
-    return text
+def parse_italics(md_text):
+    """Convert Markdown italics to HTML."""
+    return re.sub(r'\*(.*?)\*', r'<em>\1</em>', md_text)
 
-# Function to convert links
-def convert_links(text):
-    link_pattern = re.compile(r'\[(.+?)\]\((.+?)\)')
-    text = link_pattern.sub(r'<a href="\2">\1</a>', text)
-    return text
+def parse_inline_code(md_text):
+    """Convert Markdown inline code to HTML."""
+    return re.sub(r'`(.*?)`', r'<code>\1</code>', md_text)
 
-# Function to convert images
-def convert_images(text):
-    image_pattern = re.compile(r'!\[(.*?)\]\((.+?)\)')
-    text = image_pattern.sub(r'<img src="\2" alt="\1">', text)
-    return text
+def parse_links(md_text):
+    """Convert Markdown links to HTML."""
+    return re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', md_text)
 
-# Function to convert inline code and code blocks
-def convert_code(text):
-    # Inline code
-    inline_code_pattern = re.compile(r'`(.+?)`')
-    text = inline_code_pattern.sub(r'<code>\1</code>', text)
-    # Code blocks
-    code_block_pattern = re.compile(r'```(.*?)```', re.DOTALL)
-    text = code_block_pattern.sub(r'<pre><code>\1</code></pre>', text)
-    return text
+def parse_list_items(md_text):
+    """Convert Markdown list items to HTML using ->."""
+    # Converting list items to use -> instead of <li> tags
+    md_text = re.sub(r'\n\* (.*)', r'-> \1', md_text)
+    return md_text
 
-# Function to convert lists (both ordered and unordered)
-def convert_lists(text):
-    # Ordered lists
-    ordered_list_pattern = re.compile(r'^\d+\. (.+)', re.MULTILINE)
-    text = ordered_list_pattern.sub(r'<li>\1</li>', text)
-    # Unordered lists
-    unordered_list_pattern = re.compile(r'^\* (.+)', re.MULTILINE)
-    text = unordered_list_pattern.sub(r'<li>\1</li>', text)
-    # Wrap list items in <ul> or <ol>
-    text = re.sub(r'(<li>.+</li>)', r'<ul>\1</ul>', text)
-    return text
+def parse_paragraphs(md_text):
+    """Wrap text in paragraphs."""
+    # Splitting text into paragraphs by two newlines
+    paragraphs = md_text.split('\n\n')
+    paragraphs = [f'<p>{para}</p>' for para in paragraphs if not para.startswith('<h') and not para.startswith('->')]
+    return '\n\n'.join(paragraphs)
 
-# Final function to convert MarkdownV2 to HTML
-def format_message(text):
-    text = convert_headers(text)
-    text = convert_bold(text)
-    text = convert_italic(text)
-    text = convert_links(text)
-    text = convert_images(text)
-    text = convert_code(text)
-    text = convert_lists(text)
-    return text
-
+def format_message(md_text):
+    """Convert full Markdown text to HTML."""
+    md_text = parse_headers(md_text)
+    md_text = parse_bold(md_text)
+    md_text = parse_italics(md_text)
+    md_text = parse_inline_code(md_text)
+    md_text = parse_links(md_text)
+    md_text = parse_list_items(md_text)
+    md_text = parse_paragraphs(md_text)
+    return md_text
