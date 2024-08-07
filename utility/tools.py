@@ -5,12 +5,12 @@ def parse_headers(md_text):
     """Convert Markdown headers to HTML."""
     # Pattern for headers (up to 6 levels)
     header_patterns = [
-        (re.compile(r'###### (.*)'), r'<h6>\1</h6>'),
-        (re.compile(r'##### (.*)'), r'<h5>\1</h5>'),
-        (re.compile(r'#### (.*)'), r'<h4>\1</h4>'),
-        (re.compile(r'### (.*)'), r'<h3>\1</h3>'),
-        (re.compile(r'## (.*)'), r'<h2>\1</h2>'),
-        (re.compile(r'# (.*)'), r'<h1>\1</h1>')
+        (re.compile(r'###### (.*)'), r'<strong>\1</strong>'),
+        (re.compile(r'##### (.*)'), r'<strong>\1</strong>'),
+        (re.compile(r'#### (.*)'), r'<strong>\1</strong>'),
+        (re.compile(r'### (.*)'), r'<strong>\1</strong>'),
+        (re.compile(r'## (.*)'), r'<strong>\1</strong>'),
+        (re.compile(r'# (.*)'), r'<strong>\1</strong>')
     ]
     for pattern, replacement in header_patterns:
         md_text = pattern.sub(replacement, md_text)
