@@ -16,7 +16,7 @@ from gemini_api import GeminiAPI
 # Load environment variables
 load_dotenv()
 
-# Configure logging
+# Configure loging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
