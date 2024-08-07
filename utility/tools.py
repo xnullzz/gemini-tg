@@ -35,7 +35,6 @@ def parse_code_blocks(md_text):
         code = code.replace('<', '&lt;').replace('>', '&gt;')
         return f'<pre><code class="language-{language}">{code}</code></pre>'
     
-    # Use a more flexible pattern that allows for newlines around the code block
     pattern = r'```\s*(\w+)\s*\n((?:(?!```).|\n)+?)\n\s*```'
     return re.sub(pattern, replace_code, md_text, flags=re.DOTALL)
 
@@ -58,12 +57,40 @@ def parse_list_items(md_text):
         elif line.strip() and i > 0 and lines[i-1].startswith('•'):
             lines[i] = '• ' + line.strip()
     return '\n'.join(lines)
-
+i
 def parse_paragraphs(md_text):
     """Add double newline between paragraphs."""
     paragraphs = md_text.split('\n\n')
     paragraphs = [para.strip() for para in paragraphs if para.strip()]
     return '\n\n'.join(paragraphs)
+
+def ensure_closed_tags(html_text):
+    """Ensure all HTML tags are properly closed."""
+    stack = []
+    tag_pattern = re.compile(r'<(/?)(\w+)([^>]*)>')
+    
+    def replace_tag(match):
+        nonlocal stack
+        is_closing, tag, attributes = match.groups()
+        
+        if not is_closing:
+            stack.append(tag)
+            return match.group(0)
+        else:
+            if stack and stack[-1] == tag:
+                stack.pop()
+                return match.group(0)
+            else:
+                # Close any unclosed tags
+                closing_tags = ''.join(f'</{t}>' for t in reversed(stack))
+                stack = []
+                return closing_tags + match.group(0)
+    
+    processed_html = re.sub(tag_pattern, replace_tag, html_text)
+    
+    # Close any remaining open tags
+    closing_tags = ''.join(f'</{t}>' for t in reversed(stack))
+    return processed_html + closing_tags
 
 def format_message(md_text):
     """Convert full Markdown text to HTML."""
@@ -94,5 +121,8 @@ def format_message(md_text):
         return parse_code_blocks(code_blocks[index])
     
     md_text = re.sub(r'CODE_BLOCK_(\d+)', restore_code_blocks, md_text)
+    
+    # Final pass to ensure all tags are closed
+    md_text = ensure_closed_tags(md_text)
     
     return md_text
