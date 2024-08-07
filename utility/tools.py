@@ -31,13 +31,13 @@ def parse_code(md_text):
         code = match.group(2)
         # Unescape any HTML entities within the code block
         code = html.unescape(code)
-        # Re-escape any < or > characters
+        # Re-escape < and > characters
         code = code.replace('<', '&lt;').replace('>', '&gt;')
         return f'<pre><code class="language-{language}">{code}</code></pre>'
     
     # Use negative lookahead to avoid matching nested code blocks
     pattern = r'```(\w+)\n((?:(?!```).|\n)+)\n```'
-    return re.sub(pattern, replace_code, md_text, flags=re.DOTALL)
+    return re.sub(pattern, replace_code, md_text, flags=re.DOTALL)    
 
 def parse_inline_code(md_text):
     """Convert inline code to HTML."""
@@ -51,7 +51,9 @@ def parse_list_items(md_text):
     """Convert Markdown list items to bullet points and add newlines."""
     lines = md_text.split('\n')
     for i, line in enumerate(lines):
-        if line.strip().startswith('*'):
+        if line.strip().startswith('•'):
+            lines[i] = line.strip()  # Keep existing bullet points
+        elif line.strip().startswith('*'):
             lines[i] = '• ' + line.strip()[1:].strip()  # Replace * with •
         elif line.strip() and i > 0 and lines[i-1].startswith('•'):
             lines[i] = '• ' + line.strip()
@@ -69,10 +71,10 @@ def format_message(md_text):
     md_text = html.escape(md_text)
     
     # Parse Markdown elements
+    md_text = parse_code_blocks(md_text)  # Handle code blocks first
     md_text = parse_headers(md_text)
     md_text = parse_bold(md_text)
     md_text = parse_italics(md_text)
-    md_text = parse_code(md_text)  # This should come before parse_inline_code
     md_text = parse_inline_code(md_text)
     md_text = parse_links(md_text)
     md_text = parse_list_items(md_text)
