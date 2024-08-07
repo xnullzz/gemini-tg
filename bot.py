@@ -41,10 +41,10 @@ async def cmd_help(message: Message):
 async def handle_message(message: Message):
     user_message = message.text
     response = await gemini_api.generate_text(prompt=user_message)
+    escaped_response = format_message(response)
+    print(escaped_response)
 
     try:
-        escaped_response = format_message(response)
-        print(escaped_response)
         await bot.reply_to(message, escaped_response, parse_mode="HTML")
     except ValueError as e:
         logger.error(f"Error formatting message: {e}")
