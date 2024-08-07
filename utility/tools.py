@@ -1,6 +1,6 @@
 import re
 import html
-from typing import List, Tuple, Dict
+from typing import Dict
 
 def parse_headers(md_text: str) -> str:
     """Convert Markdown headers to HTML strong tags."""
@@ -45,33 +45,9 @@ def parse_paragraphs(md_text: str) -> str:
     paragraphs = [para.strip() for para in md_text.split('\n\n') if para.strip()]
     return '\n\n'.join(paragraphs)
 
-def ensure_closed_tags(html_text: str) -> str:
-    """Ensure all HTML tags are properly closed."""
-    stack: List[str] = []
-    tag_pattern = re.compile(r'<(/?)(\w+)([^>]*)>')
-    
-    def replace_tag(match):
-        nonlocal stack
-        is_closing, tag, attributes = match.groups()
-        
-        if not is_closing:
-            stack.append(tag)
-            return match.group(0)
-        else:
-            if stack and stack[-1] == tag:
-                stack.pop()
-                return match.group(0)
-            else:
-                # Close any unclosed tags
-                closing_tags = ''.join(f'</{t}>' for t in reversed(stack))
-                stack = []
-                return closing_tags + match.group(0)
-    
-    processed_html = re.sub(tag_pattern, replace_tag, html_text)
-    
-    # Close any remaining open tags
-    closing_tags = ''.join(f'</{t}>' for t in reversed(stack))
-    return processed_html + closing_tags
+def unescape_html_chars(text: str) -> str:
+    """Unescape HTML character entities."""
+    return html.unescape(text)
 
 def format_message(md_text: str) -> str:
     """Convert full Markdown text to HTML."""
@@ -79,8 +55,9 @@ def format_message(md_text: str) -> str:
     code_blocks: Dict[str, str] = {}
     md_text = re.sub(r'(```[\s\S]+?```)', lambda m: code_blocks.setdefault(f'CODE_BLOCK_{len(code_blocks)}', m.group(1)), md_text)
     
-    # Escape HTML characters
+    # Escape HTML characters, but unescape specific characters
     md_text = html.escape(md_text)
+    md_text = md_text.replace('&lt;', '<').replace('&gt;', '>')
     
     # Parse Markdown elements
     md_text = parse_headers(md_text)
@@ -94,7 +71,7 @@ def format_message(md_text: str) -> str:
     for placeholder, block in code_blocks.items():
         md_text = md_text.replace(placeholder, parse_code_blocks(block))
     
-    # Ensure all tags are closed
-    md_text = ensure_closed_tags(md_text)
+    # Unescape HTML character entities
+    md_text = unescape_html_chars(md_text)
     
     return md_text.strip()
