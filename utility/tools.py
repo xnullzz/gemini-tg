@@ -23,22 +23,9 @@ def parse_italics(md_text):
     """Convert Markdown italics to HTML."""
     return re.sub(r'\*(.*?)\*', r'<em>\1</em>', md_text)
 
-def parse_inline_code(md_text):
-    """Converts markdown code blocks to HTML pre/code blocks with appropriate language classes.
-
-    Args:
-        markdown_code (str): The markdown code block to convert.
-
-    Returns:
-        str: The HTML representation of the code block.
-    """
-    match = re.match(r"```(\w+)\n(.*?)\n```", md_text, re.DOTALL)
-    if match:
-        language = match.group(1)
-        code = match.group(2)
-        return f'<pre><code class="language-{language}">{code}</code></pre>'
-    else:
-        return md_text
+def parse_code(md_text):
+    """Converts markdown code blocks to HTML pre/code blocks with appropriate language classes."""
+    return re.sub(r'```(\w+)\n(.*?)\n```', r'<pre><code class="language-\1">\2</code></pre>', md_text, flags=re.DOTALL)
 
 def parse_links(md_text):
     """Convert Markdown links to HTML."""
@@ -61,7 +48,7 @@ def format_message(md_text):
     md_text = parse_headers(md_text)
     md_text = parse_bold(md_text)
     md_text = parse_italics(md_text)
-    md_text = parse_inline_code(md_text)
+    md_text = parse_code(md_text)
     md_text = parse_links(md_text)
     md_text = parse_list_items(md_text)
     md_text = parse_paragraphs(md_text)
