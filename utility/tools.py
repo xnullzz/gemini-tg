@@ -74,4 +74,35 @@ def format_message(md_text: str) -> str:
     # Unescape HTML character entities
     md_text = unescape_html_chars(md_text)
     
+    # Ensure all tags are properly closed
+    md_text = ensure_closed_tags(md_text)
+    
     return md_text.strip()
+
+def ensure_closed_tags(html_text: str) -> str:
+    """Ensure all HTML tags are properly closed."""
+    stack = []
+    tag_pattern = re.compile(r'<(/?)(\w+)([^>]*)>')
+    
+    def replace_tag(match):
+        nonlocal stack
+        is_closing, tag, attributes = match.groups()
+        
+        if not is_closing:
+            stack.append(tag)
+            return match.group(0)
+        else:
+            if stack and stack[-1] == tag:
+                stack.pop()
+                return match.group(0)
+            else:
+                # Close any unclosed tags
+                closing_tags = ''.join(f'</{t}>' for t in reversed(stack))
+                stack = []
+                return closing_tags + match.group(0)
+    
+    processed_html = re.sub(tag_pattern, replace_tag, html_text)
+    
+    # Close any remaining open tags
+    closing_tags = ''.join(f'</{t}>' for t in reversed(stack))
+    return processed_html + closing_tags
