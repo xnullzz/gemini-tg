@@ -50,8 +50,7 @@ def unescape_html_chars(text: str) -> str:
     return html.unescape(text)
 
 def format_message(md_text: str) -> str:
-     """Convert full Markdown text to HTML."""
-    # Preserve code blocks
+    """Convert full Markdown text to HTML."""
     code_blocks: Dict[str, str] = {}
     md_text = re.sub(r'(```[\s\S]+?```)', lambda m: code_blocks.setdefault(f'CODE_BLOCK_{len(code_blocks)}', m.group(1)), md_text)
     
