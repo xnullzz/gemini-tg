@@ -129,24 +129,18 @@ def apply_header(text: str) -> str:
     replaced_text = re.sub(pattern, r"<b><u>\2</u></b>", text, flags=re.DOTALL)
     return replaced_text
 
-
 def apply_exclude_code(text: str) -> str:
-    """Apply text formatting to non-code lines.
-
-    Iterates through each line, checking if it is in a code block.
-    If not, applies header, link, bold, italic, underline, strikethrough, monospace, and hand-point
-    text formatting.
-    """
+    """Apply text formatting to non-code lines."""
     lines = text.split("\n")
     in_code_block = False
 
     for i, line in enumerate(lines):
         if line.startswith("```"):
             in_code_block = not in_code_block
+            continue
 
         if not in_code_block:
-            formatted_line = lines[i]
-            formatted_line = apply_header(formatted_line)
+            formatted_line = apply_header(line)
             formatted_line = apply_link(formatted_line)
             formatted_line = apply_bold(formatted_line)
             formatted_line = apply_italic(formatted_line)
@@ -158,20 +152,29 @@ def apply_exclude_code(text: str) -> str:
 
     return "\n".join(lines)
 
-
 def format_message(text: str) -> str:
-    """Format the given message text from markdown to HTML.
-
-    Escapes HTML characters, applies link, code, and other rich text formatting,
-    and returns the formatted HTML string.
-
-    Args:
-      message (str): The plain text message to format.
-
-    Returns:
-      str: The formatted HTML string.
-    """
+    """Format the given message text from markdown to HTML."""
     formatted_text = escape_html(text)
     formatted_text = apply_exclude_code(formatted_text)
     formatted_text = apply_code(formatted_text)
+
+    # Validate the formatted HTML
+    if not validate_html(formatted_text):
+        raise ValueError("Invalid HTML generated from markdown")
+
     return formatted_text
+
+
+def validate_html(html: str) -> bool:
+    """Validate the formatted HTML string."""
+    # Simple validation to check for unmatched tags
+    stack = []
+    tags = re.findall(r"</?[^>]+>", html)
+    for tag in tags:
+        if not tag.startswith("</"):
+            stack.append(tag)
+        elif stack and stack[-1][1:] == tag[2:]:
+            stack.pop()
+        else:
+            return False
+    return len(stack) == 0
