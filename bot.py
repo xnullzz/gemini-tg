@@ -43,6 +43,7 @@ async def handle_message(message: Message):
     response = await gemini_api.generate_text(prompt=user_message)
     escaped_response = format_message(response)
     print(escaped_response)
+    print(response)
 
     try:
         await bot.reply_to(message, escaped_response, parse_mode="HTML")
