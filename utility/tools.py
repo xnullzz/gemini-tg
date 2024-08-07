@@ -57,7 +57,7 @@ def parse_list_items(md_text):
         elif line.strip() and i > 0 and lines[i-1].startswith('•'):
             lines[i] = '• ' + line.strip()
     return '\n'.join(lines)
-i
+
 def parse_paragraphs(md_text):
     """Add double newline between paragraphs."""
     paragraphs = md_text.split('\n\n')
