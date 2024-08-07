@@ -1,15 +1,10 @@
 import re
 import html
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 def parse_headers(md_text: str) -> str:
     """Convert Markdown headers to HTML strong tags."""
-    header_patterns: List[Tuple[re.Pattern, str]] = [
-        (re.compile(r'^(#{1,6})\s+(.*)$', re.MULTILINE), r'<strong>\2</strong>')
-    ]
-    for pattern, replacement in header_patterns:
-        md_text = pattern.sub(replacement, md_text)
-    return md_text
+    return re.sub(r'^(#{1,6})\s+(.*)$', r'<strong>\2</strong>', md_text, flags=re.MULTILINE)
 
 def parse_emphasis(md_text: str) -> str:
     """Convert Markdown bold and italics to HTML."""
@@ -52,24 +47,36 @@ def parse_paragraphs(md_text: str) -> str:
 
 def ensure_closed_tags(html_text: str) -> str:
     """Ensure all HTML tags are properly closed."""
-    stack = []
-    tag_pattern = re.compile(r'<(\w+)[^>]*>')
-    closed_tag_pattern = re.compile(r'</(\w+)>')
+    stack: List[str] = []
+    tag_pattern = re.compile(r'<(/?)(\w+)([^>]*)>')
     
-    for match in tag_pattern.finditer(html_text):
-        stack.append(match.group(1))
+    def replace_tag(match):
+        nonlocal stack
+        is_closing, tag, attributes = match.groups()
+        
+        if not is_closing:
+            stack.append(tag)
+            return match.group(0)
+        else:
+            if stack and stack[-1] == tag:
+                stack.pop()
+                return match.group(0)
+            else:
+                # Close any unclosed tags
+                closing_tags = ''.join(f'</{t}>' for t in reversed(stack))
+                stack = []
+                return closing_tags + match.group(0)
     
-    for match in closed_tag_pattern.finditer(html_text):
-        if stack and stack[-1] == match.group(1):
-            stack.pop()
+    processed_html = re.sub(tag_pattern, replace_tag, html_text)
     
-    closing_tags = ''.join(f'</{tag}>' for tag in reversed(stack))
-    return html_text + closing_tags
+    # Close any remaining open tags
+    closing_tags = ''.join(f'</{t}>' for t in reversed(stack))
+    return processed_html + closing_tags
 
 def format_message(md_text: str) -> str:
     """Convert full Markdown text to HTML."""
     # Preserve code blocks
-    code_blocks = {}
+    code_blocks: Dict[str, str] = {}
     md_text = re.sub(r'(```[\s\S]+?```)', lambda m: code_blocks.setdefault(f'CODE_BLOCK_{len(code_blocks)}', m.group(1)), md_text)
     
     # Escape HTML characters
