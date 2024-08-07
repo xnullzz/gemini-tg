@@ -1,128 +1,93 @@
 import re
 import html
+from typing import List, Tuple
 
-def parse_headers(md_text):
-    """Convert Markdown headers to HTML."""
-    # Pattern for headers (up to 6 levels)
-    header_patterns = [
-        (re.compile(r'###### (.*)'), r'<strong>\1</strong>'),
-        (re.compile(r'##### (.*)'), r'<strong>\1</strong>'),
-        (re.compile(r'#### (.*)'), r'<strong>\1</strong>'),
-        (re.compile(r'### (.*)'), r'<strong>\1</strong>'),
-        (re.compile(r'## (.*)'), r'<strong>\1</strong>'),
-        (re.compile(r'# (.*)'), r'<strong>\1</strong>')
+def parse_headers(md_text: str) -> str:
+    """Convert Markdown headers to HTML strong tags."""
+    header_patterns: List[Tuple[re.Pattern, str]] = [
+        (re.compile(r'^(#{1,6})\s+(.*)$', re.MULTILINE), r'<strong>\2</strong>')
     ]
     for pattern, replacement in header_patterns:
         md_text = pattern.sub(replacement, md_text)
     return md_text
 
-def parse_bold(md_text):
-    """Convert Markdown bold text to HTML."""
-    return re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', md_text)
+def parse_emphasis(md_text: str) -> str:
+    """Convert Markdown bold and italics to HTML."""
+    md_text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', md_text)
+    md_text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', md_text)
+    return md_text
 
-def parse_italics(md_text):
-    """Convert Markdown italics to HTML."""
-    return re.sub(r'\*(.*?)\*', r'<em>\1</em>', md_text)
-
-def parse_code_blocks(md_text):
-    """Converts markdown code blocks to HTML pre/code blocks with appropriate language classes."""
+def parse_code_blocks(md_text: str) -> str:
+    """Convert Markdown code blocks to HTML pre/code blocks with language classes."""
     def replace_code(match):
-        language = match.group(1).strip()
-        code = match.group(2).strip()
-        # Unescape any HTML entities within the code block
-        code = html.unescape(code)
-        # Re-escape < and > characters
-        code = code.replace('<', '&lt;').replace('>', '&gt;')
+        language = match.group(1).strip() or 'plaintext'
+        code = html.escape(match.group(2).strip())
         return f'<pre><code class="language-{language}">{code}</code></pre>'
     
-    pattern = r'```\s*(\w+)\s*\n((?:(?!```).|\n)+?)\n\s*```'
-    return re.sub(pattern, replace_code, md_text, flags=re.DOTALL)
+    return re.sub(r'```(\w*)\n([\s\S]+?)\n```', replace_code, md_text)
 
-def parse_inline_code(md_text):
-    """Convert inline code to HTML."""
-    return re.sub(r'`([^`\n]+)`', r'<code>\1</code>', md_text)
+def parse_inline_code(md_text: str) -> str:
+    """Convert inline code to HTML code tags."""
+    return re.sub(r'`([^`\n]+)`', lambda m: f'<code>{html.escape(m.group(1))}</code>', md_text)
 
-def parse_links(md_text):
-    """Convert Markdown links to HTML."""
+def parse_links(md_text: str) -> str:
+    """Convert Markdown links to HTML anchor tags."""
     return re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', md_text)
 
-def parse_list_items(md_text):
+def parse_list_items(md_text: str) -> str:
     """Convert Markdown list items to bullet points and add newlines."""
     lines = md_text.split('\n')
     for i, line in enumerate(lines):
-        if line.strip().startswith('•'):
-            lines[i] = line.strip()  # Keep existing bullet points
-        elif line.strip().startswith('*'):
-            lines[i] = '• ' + line.strip()[1:].strip()  # Replace * with •
-        elif line.strip() and i > 0 and lines[i-1].startswith('•'):
-            lines[i] = '• ' + line.strip()
+        stripped = line.strip()
+        if stripped.startswith(('•', '*', '-')):
+            lines[i] = f'• {stripped[1:].strip()}'
+        elif stripped and i > 0 and lines[i-1].startswith('•'):
+            lines[i] = f'• {stripped}'
     return '\n'.join(lines)
 
-def parse_paragraphs(md_text):
-    """Add double newline between paragraphs."""
-    paragraphs = md_text.split('\n\n')
-    paragraphs = [para.strip() for para in paragraphs if para.strip()]
+def parse_paragraphs(md_text: str) -> str:
+    """Add double newlines between paragraphs."""
+    paragraphs = [para.strip() for para in md_text.split('\n\n') if para.strip()]
     return '\n\n'.join(paragraphs)
 
-def ensure_closed_tags(html_text):
+def ensure_closed_tags(html_text: str) -> str:
     """Ensure all HTML tags are properly closed."""
     stack = []
-    tag_pattern = re.compile(r'<(/?)(\w+)([^>]*)>')
+    tag_pattern = re.compile(r'<(\w+)[^>]*>')
+    closed_tag_pattern = re.compile(r'</(\w+)>')
     
-    def replace_tag(match):
-        nonlocal stack
-        is_closing, tag, attributes = match.groups()
-        
-        if not is_closing:
-            stack.append(tag)
-            return match.group(0)
-        else:
-            if stack and stack[-1] == tag:
-                stack.pop()
-                return match.group(0)
-            else:
-                # Close any unclosed tags
-                closing_tags = ''.join(f'</{t}>' for t in reversed(stack))
-                stack = []
-                return closing_tags + match.group(0)
+    for match in tag_pattern.finditer(html_text):
+        stack.append(match.group(1))
     
-    processed_html = re.sub(tag_pattern, replace_tag, html_text)
+    for match in closed_tag_pattern.finditer(html_text):
+        if stack and stack[-1] == match.group(1):
+            stack.pop()
     
-    # Close any remaining open tags
-    closing_tags = ''.join(f'</{t}>' for t in reversed(stack))
-    return processed_html + closing_tags
+    closing_tags = ''.join(f'</{tag}>' for tag in reversed(stack))
+    return html_text + closing_tags
 
-def format_message(md_text):
+def format_message(md_text: str) -> str:
     """Convert full Markdown text to HTML."""
-    # First, temporarily replace code blocks with placeholders
-    code_blocks = []
-    def code_block_replacer(match):
-        code_blocks.append(match.group(0))
-        return f'CODE_BLOCK_{len(code_blocks) - 1}'
+    # Preserve code blocks
+    code_blocks = {}
+    md_text = re.sub(r'(```[\s\S]+?```)', lambda m: code_blocks.setdefault(f'CODE_BLOCK_{len(code_blocks)}', m.group(1)), md_text)
     
-    pattern = r'```\s*(\w+)\s*\n((?:(?!```).|\n)+?)\n\s*```'
-    md_text = re.sub(pattern, code_block_replacer, md_text, flags=re.DOTALL)
-    
-    # Escape HTML characters in the remaining text
+    # Escape HTML characters
     md_text = html.escape(md_text)
     
     # Parse Markdown elements
     md_text = parse_headers(md_text)
-    md_text = parse_bold(md_text)
-    md_text = parse_italics(md_text)
+    md_text = parse_emphasis(md_text)
     md_text = parse_inline_code(md_text)
     md_text = parse_links(md_text)
     md_text = parse_list_items(md_text)
     md_text = parse_paragraphs(md_text)
     
     # Restore and parse code blocks
-    def restore_code_blocks(match):
-        index = int(match.group(1))
-        return parse_code_blocks(code_blocks[index])
+    for placeholder, block in code_blocks.items():
+        md_text = md_text.replace(placeholder, parse_code_blocks(block))
     
-    md_text = re.sub(r'CODE_BLOCK_(\d+)', restore_code_blocks, md_text)
-    
-    # Final pass to ensure all tags are closed
+    # Ensure all tags are closed
     md_text = ensure_closed_tags(md_text)
     
-    return md_text
+    return md_text.strip()
