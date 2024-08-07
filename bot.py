@@ -44,6 +44,7 @@ async def handle_message(message: Message):
 
     try:
         escaped_response = format_message(response)
+        print(escaped_response)
         await bot.reply_to(message, escaped_response, parse_mode="HTML")
     except ValueError as e:
         logger.error(f"Error formatting message: {e}")
