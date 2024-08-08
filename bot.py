@@ -8,6 +8,7 @@ from telebot.types import Message
 
 from utility.tools import format_message
 from utility.decorators import authorized_only
+from mistune import html
 
 from dotenv import load_dotenv
 
@@ -43,7 +44,7 @@ async def cmd_help(message: Message) -> None:
 async def handle_message(message: Message) -> None:
     user_message = message.text
     response = await gemini_api.generate_text(prompt=user_message)
-    escaped_response = format_message(response)
+    escaped_response = html(response)
     print(escaped_response)
 
     try:
