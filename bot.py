@@ -6,7 +6,7 @@ import telebot
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
-from utility.tools import split_and_parse
+from utility.tools import parse_markdown
 from utility.decorators import authorized_only
 
 from dotenv import load_dotenv
@@ -43,8 +43,9 @@ async def cmd_help(message: Message) -> None:
 async def handle_message(message: Message) -> None:
     user_message = message.text
     response = await gemini_api.generate_text(prompt=user_message)
-    escaped_response = split_and_parse(response)
+    escaped_response = parse_markdown(response)
     print(escaped_response)
+    print(response)
 
     try:
         await bot.reply_to(message, escaped_response, parse_mode="HTML")

@@ -29,10 +29,3 @@ def parse_markdown(text: str) -> str:
 
     return text
 
-def split_and_parse(text: str) -> str:
-    """Splits the text into parts and parses each part as Markdown."""
-    parts = re.split(r'\n\n+', text)  # Split based on paragraph breaks (adjust as needed)
-    html_parts = []
-    for part in parts:
-        html_parts.append(parse_markdown(part))
-    return '\n'.join(html_parts)
