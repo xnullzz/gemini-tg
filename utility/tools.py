@@ -11,7 +11,7 @@ def parse_lists(text: str) -> str:
         text = text.replace(block, bullet_list)
     return text
 
-def format_message(text: str) -> str:
+def parse_markdown(text: str) -> str:
     """Parses MarkdownV2 to HTML, with list items as plain text bullet points and headers in <strong> tags."""
     text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)  # Bold
     text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)      # Italic
