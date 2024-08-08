@@ -1,88 +1,30 @@
-def convert_link_01(string, start=0 , string_modify="", string_finale=""):
-    # markdonw: [inline URL](http://www.example.com/)
-    # hml: <a href="http://www.example.com/">inline URL</a>
-    string_mezzo=""
-    if(string_modify!=""):
-        string_mezzo= string_modify
-    else:
-        string_mezzo= string
-    indice = 0
-    url = ""
-    inline_url =""
-    while (indice < len(string_mezzo)):       
-        if(string_mezzo[indice] =="["):
-            # print("invio questo", string_mezzo[(indice+1):] )
-            string_finale,url, inline_url, string_mezzo  = convert_link_01(string=string,start=0,string_modify= string_mezzo[(indice+1):], string_finale=string_finale)
-        
-            if(url!=""):
-                string_finale,url, inline_url, string_m = convert_link_01(string_mezzo,start=0, string_modify="", string_finale=string_finale)
-                return string_finale,"fine", "", ""
-                
-        elif(string_mezzo[indice]=="]"):
-            inline_url= string_mezzo[:(indice)]
-        
-            if(string_mezzo[indice+1]=="(" and string_mezzo[(indice+1):].find(")")):
-            
-                url=string_mezzo[(indice+2):(string_mezzo[(start):].find(")"))]
-                html_complete="<a href='"+url+"'>"+inline_url+"</a>"
-                new_string = string.replace("["+inline_url+"]("+url+")", html_complete)
-                return( new_string, url, inline_url,new_string,)
+import re
+import bleach
 
-        indice= indice+1
-    return(string_finale,url, inline_url, string_mezzo)
+def parse_lists(text: str) -> str:
+    """Parses Markdown lists into plain text with bullet points."""
+    list_blocks = re.findall(r'(?:(?:-|\*|\+)\s.*\n)+', text, flags=re.MULTILINE)
+    for block in list_blocks:
+        items = re.findall(r'(?:-|\*|\+)\s(.*)', block)
+        # Replace list items with lines starting with a bullet point
+        bullet_list = "\n".join(f"• {item}" for item in items)
+        text = text.replace(block, bullet_list)
+    return text
 
-def convert_link(string):
-    final_string_yea = convert_link_01(string)
-    if(final_string_yea[0]==""):
-        return final_string_yea[3]
-    else:
-        return final_string_yea[0]
-                            
-                            
-def convert_prototype(string="", markdown_start="", markdonw_end="", html_start="<>", html_end = "</>"):
-    
-    
-    if(markdonw_end== markdown_start):
-        final_string=""
-        new_string= string.split(markdown_start)
-        
-        for index,word in enumerate(new_string):
-            
-            if(index == (len(new_string)-1)):
-                final_string = final_string+word
-            else:  
-                if(index%2 == 0 ):
-                    # pari
-                    final_string=final_string+ word+html_start
-                else:   
-                    final_string= final_string+word+html_end
-        return final_string
+def format_message(text: str) -> str:
+    """Parses MarkdownV2 to HTML, with list items as plain text bullet points and headers in <strong> tags."""
+    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)  # Bold
+    text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)      # Italic
+    # ... (Add similar rules for other basic tags: u, ins, s, strike, del, a)
+    text = re.sub(r'```(\w+)\n(.*?)\n```', r'<pre><code class="language-\1">\2</code></pre>', text, flags=re.DOTALL)  # Code blocks
+    text = re.sub(r'`(.*?)`', r'<code>\1</code>', text)  # Inline code
+    text = re.sub(r'^(#+)\s*(.+)', r'<strong>\2</strong>', text, flags=re.MULTILINE)  # Headers
 
+    text = parse_lists(text)
 
-    for index,letter in enumerate(string):
-        if(letter==markdown_start):
-            if(string[(index+1):].find(markdonw_end)!= -1):
-                bold_text=string[(index+1):][:(string[(index+1):].find(markdonw_end))]
-                return string.replace(markdown_start+bold_text+markdonw_end,html_start +bold_text+html_end)
-    return(string)
+    # Sanitize the output
+    allowed_tags = ['b', 'strong', 'i', 'em', 'u', 'ins', 's', 'strike', 'del', 'a', 'code', 'pre', 'br']
+    allowed_attributes = {'a': ['href', 'title'], 'code': ['class']}
+    text = bleach.clean(text, tags=allowed_tags, attributes=allowed_attributes, strip=True)
 
-                          
-                    
-def convert_bold(string):
-    # markdown = *bold text*
-    # html = <b>bold</b>
-    return (convert_prototype(string,"*","*","<b>","</b>"))
-    
-def convert_italic(string):
-    # markdown= _italic \*text_
-    # html = <i>italic</i>, <em>italic</em> 
-    return (convert_prototype(string,"_","_","<em>","</em>"))
-
-def convert_underline(string):
-    # markdown:  __underline__
-    # html:  <u>underline</u>, <ins>underline</ins>
-    return (convert_prototype(string,"__","__","<u>","</u>"))
-
-
-def convert_everything(string):
-    return (convert_link(convert_bold(convert_italic(convert_underline(string)))))
+    return text
