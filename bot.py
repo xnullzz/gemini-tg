@@ -44,7 +44,9 @@ async def cmd_help(message: Message) -> None:
 async def handle_message(message: Message) -> None:
     user_message = message.text
     response = await gemini_api.generate_text(prompt=user_message)
-    escaped_response = html(response)
+    escaped_response = format_message(
+            html(response)
+    )
     print(escaped_response)
 
     try:
