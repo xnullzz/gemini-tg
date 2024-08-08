@@ -20,7 +20,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize bot and dispatcher
+# Initializ bot and dispatcher
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 ALLOWED_USERNAMES = os.getenv("ALLOWED_USERNAMES", "").split(",")
