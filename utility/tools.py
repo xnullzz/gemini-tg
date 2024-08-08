@@ -30,10 +30,15 @@ def parse_links(md_text: str) -> str:
     return re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', md_text)
 
 def parse_list_items(md_text: str) -> str:
-    """Convert Markdown list items to HTML list items."""
-    md_text = re.sub(r'^\s*([-*•])\s+', '<li>', md_text, flags=re.MULTILINE)
-    md_text = re.sub(r'\n<li>', '</li>\n<li>', md_text)
-    return md_text
+    """Convert Markdown list items to bullet points and add newlines."""
+    lines = md_text.split('\n')
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith(('•', '*', '-')):
+            lines[i] = f'• {stripped[1:].strip()}'
+        elif stripped and i > 0 and lines[i-1].startswith('•'):
+            lines[i] = f'• {stripped}'
+    return '\n'.join(lines)
 
 def parse_paragraphs(md_text: str) -> str:
     """Add double newlines between paragraphs."""
@@ -46,7 +51,6 @@ def unescape_html_chars(text: str) -> str:
 
 def format_message(md_text: str) -> str:
     """Convert full Markdown text to HTML."""
-    # Preserve code blocks
     code_blocks: Dict[str, str] = {}
     md_text = re.sub(r'(```[\s\S]+?```)', lambda m: code_blocks.setdefault(f'CODE_BLOCK_{len(code_blocks)}', m.group(1)), md_text)
     
