@@ -128,6 +128,7 @@ async def handle_message(message: Message) -> None:
 
         escaped_response = parse_markdown(response)
         await bot.reply_to(message, escaped_response, parse_mode="HTML")
+    
     except Exception as e:
         logger.error(f"Error processing message: {e}")
         await bot.reply_to(message, "I encountered an error while processing your request. Please try again later.")
