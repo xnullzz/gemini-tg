@@ -36,12 +36,12 @@ class GeminiAPI:
             raise
 
     async def generate_chat(self, messages: List[Dict[str, str]], system_prompt: str = None) -> str:
-        prompt_messages = [{"role": "system", "content": system_prompt}] if system_prompt else []
-        prompt_messages.extend(messages)
-        try:
+         try:
+            if system_prompt:
+                messages.insert(0, {"role": "system", "content": system_prompt})
             response = await asyncio.to_thread(
                 self.model.generate_content,
-                prompt_messages,
+                messages,
                 generation_config=genai.types.GenerationConfig(
                     temperature=self.temperature,
                     max_output_tokens=self.max_output_tokens,
