@@ -18,6 +18,13 @@ class GeminiAPI:
             HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
             HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
         }
+        self.context_ids = {}
+
+    def _get_context_id(self, chat_id: int) -> str:
+        return self.context_ids.get(chat_id, "")
+
+    def _set_context_id(self, chat_id: int, context_id: str) -> None:
+        self.context_ids[chat_id] = context_id
 
     async def generate_text(self, prompt: str) -> str:
         try:
@@ -40,6 +47,7 @@ class GeminiAPI:
             response = await asyncio.to_thread(
                 self.model.generate_content,
                 messages,
+                context=context_id,
                 generation_config=genai.types.GenerationConfig(
                     temperature=self.temperature,
                     max_output_tokens=self.max_output_tokens,
