@@ -123,7 +123,7 @@ async def handle_message(message: Message) -> None:
 
     try:
         system_prompt = prompt_manager.get_prompt(chat_id)
-        response = await gemini_api.generate_chat(chat_history[chat_id], system_prompt=system_prompt)
+        response = await gemini_api.generate_chat(chat_history[chat_id], system_prompt)
         chat_history[chat_id].append({"role": "model", "parts": [response]})
 
         escaped_response = parse_markdown(response)
