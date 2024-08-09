@@ -127,6 +127,7 @@ async def handle_message(message: Message) -> None:
         chat_history[chat_id].append({"role": "model", "parts": [response]})
 
         escaped_response = parse_markdown(response)
+        
         await bot.reply_to(message, escaped_response, parse_mode="HTML")
     
     except Exception as e:
