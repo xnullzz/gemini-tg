@@ -35,7 +35,7 @@ class GeminiAPI:
             logger.error(f"Error generating text: {e}")
             raise
 
-    async def generate_chat(self, messages: List[Dict[str, str]]) -> str:
+    async def generate_chat(self, messages: List[Dict[str, str]], system_prompt) -> str:
         try:
             response = await asyncio.to_thread(
                 self.model.generate_content,
@@ -44,7 +44,8 @@ class GeminiAPI:
                     temperature=self.temperature,
                     max_output_tokens=self.max_output_tokens,
                 ),
-                safety_settings=self.safety_settings
+                safety_settings=self.safety_settings,
+                system_instruction=system_prompt
             )
             return response.text
         except Exception as e:

@@ -8,11 +8,15 @@ from telebot.types import Message
 from cachetools import TTLCache
 from utility.tools import parse_markdown
 from utility.decorators import authorized_only, rate_limit
+from utility.system_prompt import SystemPromptManager
 from dotenv import load_dotenv
 from gemini_api import GeminiAPI
 
 # Load environment variables
 load_dotenv()
+
+# Initialize the SystemPromptManager
+prompt_manager = SystemPromptManager()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -59,13 +63,15 @@ async def cmd_help(message: Message) -> None:
         "Commands:\n"
         "/start - Begin interacting with the bot\n"
         "/help - Display this help message\n"
-        "/reset - Clear your chat history\n\n"
+        "/reset_context - Clear your chat history\n\n"
+        "/set_prompt - Set system prompt for answers\n\n"
+        "/clear_prompt - Set no system prompt for answers"
         "Remember, I'm an AI language model, so my responses are based on my training data. "
         "For the most up-to-date or critical information, always consult authoritative sources."
     )
     await bot.reply_to(message, help_message)
 
-@bot.message_handler(commands=['reset'])
+@bot.message_handler(commands=['reset_context'])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
 async def cmd_reset(message: Message) -> None:
@@ -73,6 +79,35 @@ async def cmd_reset(message: Message) -> None:
     if chat_id in chat_history:
         del chat_history[chat_id]
     await bot.reply_to(message, "Your chat history has been cleared.")
+
+@bot.message_handler(commands=['set_prompt'])
+@authorized_only(bot, ALLOWED_USERNAMES)
+@rate_limit(limit=5, period=60)
+async def cmd_set_prompt(message: Message) -> None:
+    chat_id = message.chat.id
+    prompt_text = message.text.split(' ', 1)[1] if len(message.text.split()) > 1 else ""
+    if not prompt_text:
+        await bot.reply_to(message, "Please provide a prompt text. Usage: /set_prompt <your_prompt>")
+        return
+
+    prompt_manager.set_prompt(chat_id, prompt_text)
+    await bot.reply_to(message, "System prompt has been set successfully.")
+
+@bot.message_handler(commands=['get_prompt'])
+@authorized_only(bot, ALLOWED_USERNAMES)
+@rate_limit(limit=5, period=60)
+async def cmd_get_prompt(message: Message) -> None:
+    chat_id = message.chat.id
+    current_prompt = prompt_manager.get_prompt(chat_id)
+    await bot.reply_to(message, f"Current system prompt: {current_prompt}")
+
+@bot.message_handler(commands=['clear_prompt'])
+@authorized_only(bot, ALLOWED_USERNAMES)
+@rate_limit(limit=5, period=60)
+async def cmd_clear_prompt(message: Message) -> None:
+    chat_id = message.chat.id
+    prompt_manager.clear_prompt(chat_id)
+    await bot.reply_to(message, "System prompt has been cleared.")
 
 @bot.message_handler(func=lambda message: True)
 @authorized_only(bot, ALLOWED_USERNAMES)
@@ -87,7 +122,8 @@ async def handle_message(message: Message) -> None:
     chat_history[chat_id].append({"role": "user", "parts": [user_message]})
 
     try:
-        response = await gemini_api.generate_chat(chat_history[chat_id])
+        system_prompt = prompt_manager.get_prompt(chat_id)
+        response = await gemini_api.generate_chat(chat_history[chat_id], system_prompt=system_prompt)
         chat_history[chat_id].append({"role": "model", "parts": [response]})
 
         escaped_response = parse_markdown(response)
