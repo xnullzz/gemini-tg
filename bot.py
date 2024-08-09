@@ -65,15 +65,14 @@ async def cmd_help(message: Message) -> None:
     )
     await bot.reply_to(message, help_message)
 
-@bot.message_handler(commands=['clear_context'])
+@bot.message_handler(commands=['reset'])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
-async def cmd_clear_context(message: Message) -> None:
+async def cmd_reset(message: Message) -> None:
     chat_id = message.chat.id
     if chat_id in chat_history:
         del chat_history[chat_id]
-    gemini_api._set_context_id(chat_id, "")  
-    await bot.reply_to(message, "The conversation context has been cleared.")
+    await bot.reply_to(message, "Your chat history has been cleared.")
 
 @bot.message_handler(func=lambda message: True)
 @authorized_only(bot, ALLOWED_USERNAMES)
