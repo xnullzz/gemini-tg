@@ -1,25 +1,52 @@
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import asyncio
+from typing import Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GeminiAPI:
-    def __init__(self, api_key, model="gemini-1.5-pro"):
+    def __init__(self, api_key: str, model: str = "gemini-1.5-pro"):
         genai.configure(api_key=api_key)
-        self.model = model
+        self.model = genai.GenerativeModel(model)
         self.temperature = 0.7
         self.max_output_tokens = 8192
-        self.safety_settings = {
+        self.safety_settings: Dict[HarmCategory, HarmBlockThreshold] = {
             HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
             HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
             HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
             HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
         }
 
-    async def generate_text(self, prompt):
-        loop = asyncio.get_event_loop()
-        model_selected = genai.GenerativeModel(self.model)
-        response = await loop.run_in_executor(
-            None,
-            lambda: model_selected.generate_content(prompt, safety_settings=self.safety_settings)
-        )
-        return response.text
+    async def generate_text(self, prompt: str) -> str:
+        try:
+            response = await asyncio.to_thread(
+                self.model.generate_content,
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=self.temperature,
+                    max_output_tokens=self.max_output_tokens,
+                ),
+                safety_settings=self.safety_settings
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"Error generating text: {e}")
+            raise
+
+    async def generate_chat(self, messages: List[Dict[str, str]]) -> str:
+        try:
+            response = await asyncio.to_thread(
+                self.model.generate_content,
+                messages,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=self.temperature,
+                    max_output_tokens=self.max_output_tokens,
+                ),
+                safety_settings=self.safety_settings
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"Error generating chat response: {e}")
+            raise
