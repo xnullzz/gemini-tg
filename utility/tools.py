@@ -1,5 +1,6 @@
 import re
 import bleach
+import mistune
 
 def parse_lists(text: str) -> str:
     """Parses Markdown lists into plain text with bullet points."""
@@ -12,13 +13,7 @@ def parse_lists(text: str) -> str:
 
 def parse_markdown(text: str) -> str:
     """Parses MarkdownV2 to HTML, with list items as plain text bullet points and headers in <strong> tags."""
-    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)  # Bold
-    text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)      # Italic
-    # ... (Add similar rules for other basic tags: u, ins, s, strike, del, a if needed)
-    text = re.sub(r'```(\w+)\n(.*?)\n```', r'<pre><code class="language-\1">\2</code></pre>', text, flags=re.DOTALL)  # Code blocks
-    text = re.sub(r'`(.*?)`', r'<code>\1</code>', text)  # Inline code
-    text = re.sub(r'^(#+)\s*(.+)', r'<strong>\2</strong>', text, flags=re.MULTILINE)  # Headers
-
+    text = mistune.html(text)
     text = parse_lists(text)
 
     # Sanitize the output
