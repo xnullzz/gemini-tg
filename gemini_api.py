@@ -27,7 +27,8 @@ class GeminiAPI:
                 max_output_tokens=self.max_output_tokens,
             ),
             safety_settings=self.safety_settings,
-            system_instruction=system_prompt
+            system_instruction=system_prompt,
+            tools='code_execution'
         )
     
     async def generate_chat(self, messages: List[Dict[str, str]], system_prompt: str = None) -> str:
