@@ -19,7 +19,9 @@ load_dotenv()
 prompt_manager = SystemPromptManager()
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Initialize bot and API
@@ -33,7 +35,8 @@ gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 # Initialize cache for chat history
 chat_history = TTLCache(maxsize=1000, ttl=3600)  # Store 1000 chat histories for 1 hour
 
-@bot.message_handler(commands=['start'])
+
+@bot.message_handler(commands=["start"])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
 async def cmd_start(message: Message) -> None:
@@ -49,7 +52,8 @@ async def cmd_start(message: Message) -> None:
     )
     await bot.reply_to(message, start_message)
 
-@bot.message_handler(commands=['help'])
+
+@bot.message_handler(commands=["help"])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
 async def cmd_help(message: Message) -> None:
@@ -71,7 +75,8 @@ async def cmd_help(message: Message) -> None:
     )
     await bot.reply_to(message, help_message)
 
-@bot.message_handler(commands=['reset_context'])
+
+@bot.message_handler(commands=["reset_context"])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
 async def cmd_reset(message: Message) -> None:
@@ -80,20 +85,24 @@ async def cmd_reset(message: Message) -> None:
         del chat_history[chat_id]
     await bot.reply_to(message, "Your chat history has been cleared.")
 
-@bot.message_handler(commands=['set_prompt'])
+
+@bot.message_handler(commands=["set_prompt"])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
 async def cmd_set_prompt(message: Message) -> None:
     chat_id = message.chat.id
-    prompt_text = message.text.split(' ', 1)[1] if len(message.text.split()) > 1 else ""
+    prompt_text = message.text.split(" ", 1)[1] if len(message.text.split()) > 1 else ""
     if not prompt_text:
-        await bot.reply_to(message, "Please provide a prompt text. Usage: /set_prompt <your_prompt>")
+        await bot.reply_to(
+            message, "Please provide a prompt text. Usage: /set_prompt <your_prompt>"
+        )
         return
 
     prompt_manager.set_prompt(chat_id, prompt_text)
     await bot.reply_to(message, "System prompt has been set successfully.")
 
-@bot.message_handler(commands=['get_prompt'])
+
+@bot.message_handler(commands=["get_prompt"])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
 async def cmd_get_prompt(message: Message) -> None:
@@ -101,13 +110,15 @@ async def cmd_get_prompt(message: Message) -> None:
     current_prompt = prompt_manager.get_prompt(chat_id)
     await bot.reply_to(message, f"Current system prompt: {current_prompt}")
 
-@bot.message_handler(commands=['clear_prompt'])
+
+@bot.message_handler(commands=["clear_prompt"])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
 async def cmd_clear_prompt(message: Message) -> None:
     chat_id = message.chat.id
     prompt_manager.clear_prompt(chat_id)
     await bot.reply_to(message, "System prompt has been cleared.")
+
 
 @bot.message_handler(func=lambda message: True)
 @authorized_only(bot, ALLOWED_USERNAMES)
@@ -127,12 +138,16 @@ async def handle_message(message: Message) -> None:
         chat_history[chat_id].append({"role": "model", "parts": [response]})
 
         escaped_response = parse_markdown(response)
-        
+
         await bot.reply_to(message, escaped_response, parse_mode="HTML")
-    
+
     except Exception as e:
         logger.error(f"Error processing message: {e}")
-        await bot.reply_to(message, "I encountered an error while processing your request. Please try again later.")
+        await bot.reply_to(
+            message,
+            "I encountered an error while processing your request. Please try again later.",
+        )
+
 
 async def main() -> None:
     try:
@@ -142,5 +157,7 @@ async def main() -> None:
         await asyncio.sleep(5)
         await main()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     asyncio.run(main())
+
