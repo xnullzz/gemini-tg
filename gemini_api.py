@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class GeminiAPI:
     def __init__(self, api_key: str, model: str = "gemini-1.5-pro"):
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(model)
+        self.model_name = model
         self.temperature = 0.7
         self.max_output_tokens = 8192
         self.safety_settings: Dict[HarmCategory, HarmBlockThreshold] = {
@@ -18,6 +18,17 @@ class GeminiAPI:
             HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
             HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
         }
+
+    def _get_model(self, system_prompt: str = None):
+        return genai.GenerativeModel(
+            model_name=self.model_name,
+            generation_config=genai.types.GenerationConfig(
+                temperature=self.temperature,
+                max_output_tokens=self.max_output_tokens,
+            ),
+            safety_settings=self.safety_settings,
+            system_instruction=system_prompt
+        )
 
     async def generate_text(self, prompt: str) -> str:
         try:
@@ -37,21 +48,10 @@ class GeminiAPI:
 
     async def generate_chat(self, messages: List[Dict[str, str]], system_prompt: str = None) -> str:
         try:
-            if system_prompt:
-                messages.insert(0, {"role": "system", "parts": [system_prompt]})
-            for message in messages:
-                if 'content' in message:
-                    message['parts'] = [message['content']]
-                    del message['content']
-
+            model = self._get_model(system_prompt)
             response = await asyncio.to_thread(
-                    self.model.generate_content,
-                    messages,
-                    generation_config=genai.types.GenerationConfig(
-                    temperature=self.temperature,
-                    max_output_tokens=self.max_output_tokens,
-                ),
-                safety_settings=self.safety_settings
+                    model.generate_content,
+                    messages
             )
             return response.text
         except Exception as e:
