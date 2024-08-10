@@ -41,11 +41,11 @@ class GeminiAPI:
                 model.generate_content,
                 messages,
                 generation_config=genai.types.GenerationConfig(
+                    system_instruction=system_prompt,
                     temperature=self.temperature,
                     max_output_tokens=self.max_output_tokens,
                 ),
-                safety_settings=self.safety_settings,
-                system_instruction=system_prompt
+                safety_settings=self.safety_settings
             )
             return response.text
         except Exception as e:
