@@ -47,6 +47,6 @@ class GeminiAPI:
                 safety_settings=self.safety_settings
             )
             return response.text
-         except Exception as e:
+        except Exception as e:
             logger.error(f"Error generating chat response: {e}")
             raise
