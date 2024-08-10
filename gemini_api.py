@@ -29,8 +29,8 @@ class GeminiAPI:
             safety_settings=self.safety_settings,
             system_instruction=system_prompt
         )
-
-      async def generate_chat(self, messages: List[Dict[str, str]], system_prompt: str = None) -> str:
+    
+    async def generate_chat(self, messages: List[Dict[str, str]], system_prompt: str = None) -> str:
         try:
             model = self._get_model(system_prompt)
             response = await asyncio.to_thread(
