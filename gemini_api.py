@@ -19,10 +19,8 @@ class GeminiAPI:
             HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
         }
 
-    def _get_model(self, system_prompt: str = None):
-        return genai.GenerativeModel(
-            model_name=self.model_name,
-            system_instruction=system_prompt)
+    def _get_model(self):
+        return genai.GenerativeModel(model_name=self.model_name)
 
     async def generate_text(self, prompt: str, system_prompt: str = None) -> str:
         try:
@@ -46,7 +44,8 @@ class GeminiAPI:
                     temperature=self.temperature,
                     max_output_tokens=self.max_output_tokens,
                 ),
-                safety_settings=self.safety_settings
+                safety_settings=self.safety_settings,
+                system_instruction=system_prompt
             )
             return response.text
         except Exception as e:
