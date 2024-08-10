@@ -9,6 +9,7 @@ from cachetools import TTLCache
 from utility.tools import parse_markdown
 from utility.decorators import authorized_only, rate_limit
 from utility.system_prompt import SystemPromptManager
+from file_handlers import handle_uploaded_files
 from dotenv import load_dotenv
 from gemini_api import GeminiAPI
 
@@ -114,17 +115,23 @@ async def cmd_clear_prompt(message: Message) -> None:
     prompt_manager.clear_prompt(chat_id)
     await bot.reply_to(message, "System prompt has been cleared.")
 
-@bot.message_handler(func=lambda message: True)
+@bot.message_handler(content_types=['text', 'photo', 'audio', 'video', 'document'])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=20, period=60)
 async def handle_message(message: Message) -> None:
     chat_id = message.chat.id
-    user_message = message.text
+    user_message = message.text or message.caption
 
     if chat_id not in chat_history:
         chat_history[chat_id] = []
 
-    chat_history[chat_id].append({"role": "user", "parts": [user_message]})
+    message_parts = [user_message] if user_message else []
+
+    uploaded_files = await handle_uploaded_files(bot, message)
+    if uploaded_files:
+        message_parts.extend(uploaded_files)
+
+    chat_history[chat_id].append({"role": "user", "parts": message_parts})
 
     try:
         system_prompt = prompt_manager.get_prompt(chat_id)
@@ -141,6 +148,7 @@ async def handle_message(message: Message) -> None:
             message,
             "I encountered an error while processing your request. Please try again later.",
         )
+
 
 async def main() -> None:
     try:
