@@ -36,7 +36,7 @@ class GeminiAPI:
 
     async def generate_chat(self, messages: List[Dict[str, str]], system_prompt: str = None) -> str:
         try:
-            model = self._get_model(system_prompt)
+            model = self._get_model()
             response = await asyncio.to_thread(
                 model.generate_content,
                 messages,
