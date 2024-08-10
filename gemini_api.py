@@ -22,13 +22,7 @@ class GeminiAPI:
     def _get_model(self, system_prompt: str = None):
         return genai.GenerativeModel(
             model_name=self.model_name,
-            generation_config=genai.types.GenerationConfig(
-                temperature=self.temperature,
-                max_output_tokens=self.max_output_tokens,
-            ),
-            safety_settings=self.safety_settings,
-            system_instruction=system_prompt
-        )
+            system_instruction=system_prompt)
 
     async def generate_text(self, prompt: str, system_prompt: str = None) -> str:
         try:
@@ -47,7 +41,12 @@ class GeminiAPI:
             model = self._get_model(system_prompt)
             response = await asyncio.to_thread(
                 model.generate_content,
-                messages
+                messages,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=self.temperature,
+                    max_output_tokens=self.max_output_tokens,
+                ),
+                safety_settings=self.safety_settings
             )
             return response.text
         except Exception as e:
