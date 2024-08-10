@@ -35,7 +35,6 @@ gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 # Initialize cache for chat history
 chat_history = TTLCache(maxsize=1000, ttl=3600)  # Store 1000 chat histories for 1 hour
 
-
 @bot.message_handler(commands=["start"])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
@@ -52,7 +51,6 @@ async def cmd_start(message: Message) -> None:
     )
     await bot.reply_to(message, start_message)
 
-
 @bot.message_handler(commands=["help"])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
@@ -67,14 +65,14 @@ async def cmd_help(message: Message) -> None:
         "Commands:\n"
         "/start - Begin interacting with the bot\n"
         "/help - Display this help message\n"
-        "/reset_context - Clear your chat history\n\n"
-        "/set_prompt - Set system prompt for answers\n\n"
-        "/clear_prompt - Set no system prompt for answers"
+        "/reset_context - Clear your chat history\n"
+        "/set_prompt - Set system prompt for answers\n"
+        "/get_prompt - Get current system prompt\n"
+        "/clear_prompt - Clear system prompt for answers\n\n"
         "Remember, I'm an AI language model, so my responses are based on my training data. "
         "For the most up-to-date or critical information, always consult authoritative sources."
     )
     await bot.reply_to(message, help_message)
-
 
 @bot.message_handler(commands=["reset_context"])
 @authorized_only(bot, ALLOWED_USERNAMES)
@@ -84,7 +82,6 @@ async def cmd_reset(message: Message) -> None:
     if chat_id in chat_history:
         del chat_history[chat_id]
     await bot.reply_to(message, "Your chat history has been cleared.")
-
 
 @bot.message_handler(commands=["set_prompt"])
 @authorized_only(bot, ALLOWED_USERNAMES)
@@ -101,7 +98,6 @@ async def cmd_set_prompt(message: Message) -> None:
     prompt_manager.set_prompt(chat_id, prompt_text)
     await bot.reply_to(message, "System prompt has been set successfully.")
 
-
 @bot.message_handler(commands=["get_prompt"])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
@@ -110,7 +106,6 @@ async def cmd_get_prompt(message: Message) -> None:
     current_prompt = prompt_manager.get_prompt(chat_id)
     await bot.reply_to(message, f"Current system prompt: {current_prompt}")
 
-
 @bot.message_handler(commands=["clear_prompt"])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=5, period=60)
@@ -118,7 +113,6 @@ async def cmd_clear_prompt(message: Message) -> None:
     chat_id = message.chat.id
     prompt_manager.clear_prompt(chat_id)
     await bot.reply_to(message, "System prompt has been cleared.")
-
 
 @bot.message_handler(func=lambda message: True)
 @authorized_only(bot, ALLOWED_USERNAMES)
@@ -148,7 +142,6 @@ async def handle_message(message: Message) -> None:
             "I encountered an error while processing your request. Please try again later.",
         )
 
-
 async def main() -> None:
     try:
         await bot.polling(non_stop=True)
@@ -157,7 +150,5 @@ async def main() -> None:
         await asyncio.sleep(5)
         await main()
 
-
 if __name__ == "__main__":
     asyncio.run(main())
-

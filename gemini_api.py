@@ -30,16 +30,12 @@ class GeminiAPI:
             system_instruction=system_prompt
         )
 
-    async def generate_text(self, prompt: str) -> str:
+    async def generate_text(self, prompt: str, system_prompt: str = None) -> str:
         try:
+            model = self._get_model(system_prompt)
             response = await asyncio.to_thread(
-                self.model.generate_content,
-                prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=self.temperature,
-                    max_output_tokens=self.max_output_tokens,
-                ),
-                safety_settings=self.safety_settings
+                model.generate_content,
+                prompt
             )
             return response.text
         except Exception as e:
@@ -50,8 +46,8 @@ class GeminiAPI:
         try:
             model = self._get_model(system_prompt)
             response = await asyncio.to_thread(
-                    model.generate_content,
-                    messages
+                model.generate_content,
+                messages
             )
             return response.text
         except Exception as e:
