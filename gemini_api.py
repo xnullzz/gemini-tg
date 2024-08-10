@@ -19,33 +19,23 @@ class GeminiAPI:
             HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
         }
 
-    def _get_model(self):
-        return genai.GenerativeModel(model_name=self.model_name)
-
-    async def generate_text(self, prompt: str, system_prompt: str = None) -> str:
+    def _get_model(self, system_prompt: str = None):
+        return genai.GenerativeModel(
+                model_name=self.model_name,
+                generation_config=genai.types.GenerationConfig(
+                    system_instruction=system_prompt,
+                    emperature=self.temperature,
+                    max_output_tokens=self.max_output_tokens,
+                ),
+                safety_settings=self.safety_settings
+        )
+ 
+    async def generate_chat(self, messages: List[Dict[str, str]], system_prompt: str = None) -> str:
         try:
             model = self._get_model(system_prompt)
             response = await asyncio.to_thread(
                 model.generate_content,
-                prompt
-            )
-            return response.text
-        except Exception as e:
-            logger.error(f"Error generating text: {e}")
-            raise
-
-    async def generate_chat(self, messages: List[Dict[str, str]], system_prompt: str = None) -> str:
-        try:
-            model = self._get_model()
-            response = await asyncio.to_thread(
-                model.generate_content,
-                messages,
-                generation_config=genai.types.GenerationConfig(
-                    system_instruction=system_prompt,
-                    temperature=self.temperature,
-                    max_output_tokens=self.max_output_tokens,
-                ),
-                safety_settings=self.safety_settings
+                messages
             )
             return response.text
         except Exception as e:
