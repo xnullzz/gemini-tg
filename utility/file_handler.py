@@ -9,6 +9,7 @@ async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
     file_id = None
     file_type = None
     file_ext = None
+    mimetypes.add_type("audio/ogg", ".ogg")
 
     if message.photo:
         file_id = message.photo[-1].file_id
