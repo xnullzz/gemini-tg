@@ -45,7 +45,7 @@ async def handle_message(message: Message) -> None:
     chat_id = message.chat.id
 
     # Handle files first
-    file_response = handle_file(message, GEMINI_API_KEY)
+    file_response = handle_file(message, GEMINI_API_KEY, bot)  # Pass bot to the function
     if file_response:
         await bot.reply_to(message, file_response)
         return

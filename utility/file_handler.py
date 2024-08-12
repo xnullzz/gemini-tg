@@ -1,12 +1,13 @@
 import google.generativeai as genai
 from telebot.types import Message
 
-def handle_file(message: Message, gemini_api_key: str) -> str:
+def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot as a parameter
     """Retrieves a file from the message and sends it to Gemini for analysis.
 
     Args:
         message: The Telegram message object.
         gemini_api_key: The API key for Google Gemini.
+        bot: The telebot instance.  # Add this line
 
     Returns:
         The response from Gemini, or None if no file was found.
