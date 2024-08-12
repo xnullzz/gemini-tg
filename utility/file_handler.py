@@ -45,7 +45,8 @@ async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
                 "You have been provided with a file to analyze. "
                 "Always assume you can access and understand the contents of the file. "
                 "Respond to the user's query about the file based on your analysis. "
-                "If no specific query is provided, give a general description or summary of the file's contents."
+                "If no specific query is provided, give a general description or summary of the file's contents.
+                YOU ALWAYS HAVE TO ANSWER IN THE LANGUAGE THAT IS USER REQUEST PROVIDED, SO IF USER ASKS IN RUSSIAN YOU NEED ANSWER IN RUSSIAN AND SO ON"
             )
         model = genai.GenerativeModel("gemini-1.5-pro", system_instruction=system_instruction)
 
