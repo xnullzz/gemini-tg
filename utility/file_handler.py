@@ -31,7 +31,7 @@ def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot a
             downloaded_file = bot.download_file(file_info.file_path)
 
             genai.configure(api_key=gemini_api_key)
-            uploaded_file = genai.upload_file(downloaded_file)
+            uploaded_file = genai.upload_file(media / downloaded_file)
 
             model = genai.GenerativeModel("gemini-1.5-pro")  # Use gemini-1.5-pro
 
