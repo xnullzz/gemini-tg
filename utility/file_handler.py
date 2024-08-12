@@ -33,18 +33,18 @@ def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot a
             genai.configure(api_key=gemini_api_key)
             uploaded_file = genai.upload_file(downloaded_file)
 
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            model = genai.GenerativeModel("gemini-1.5-pro")  # Use gemini-1.5-pro
 
             # Use caption as prompt if it exists
             if message.caption:
                 prompt = message.caption
                 print(f"DEBUG: Using caption as prompt: {prompt}")
             elif file_type == 'image':
-                prompt = "Can you tell me about this image?"
+                prompt = "Describe this image in detail, including objects, people, and background."
             elif file_type == 'audio':
-                prompt = "Describe this audio clip."
+                prompt = "Transcribe this audio clip and summarize its content."
             else:
-                prompt = "Give me a summary of this document."
+                prompt = "Summarize this document and identify any key topics or themes."
 
             print(f"DEBUG: Sending prompt to Gemini: {prompt}")
 
