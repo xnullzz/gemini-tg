@@ -1,24 +1,35 @@
 import google.generativeai as genai
 from telebot.types import Message
 import time
+import mimetypes
+import os
 
 async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
     """Retrieves a file from the message and sends it to Gemini for analysis."""
     file_id = None
     file_type = None
+    file_ext = None
 
     if message.photo:
         file_id = message.photo[-1].file_id
         file_type = 'image'
-    elif message.audio or message.voice:
-        file_id = message.audio.file_id if message.audio else message.voice.file_id
+        file_ext = '.jpg'
+    elif message.audio:
+        file_id = message.audio.file_id
         file_type = 'audio'
+        file_ext = '.' + (message.audio.mime_type.split('/')[-1] if message.audio.mime_type else 'mp3')
+    elif message.voice:
+        file_id = message.voice.file_id
+        file_type = 'audio'
+        file_ext = '.ogg'
     elif message.document:
         file_id = message.document.file_id
         file_type = 'document'
+        file_ext = os.path.splitext(message.document.file_name)[1] if message.document.file_name else ''
     elif message.video:
         file_id = message.video.file_id
         file_type = 'video'
+        file_ext = '.mp4'
 
     if not file_id:
         return None
@@ -30,11 +41,17 @@ async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
         genai.configure(api_key=gemini_api_key)
         model = genai.GenerativeModel("gemini-1.5-pro")
 
-        # Create a temporary file and upload it
-        with open('temp_file', 'wb') as temp_file:
+        # Create a temporary file with the correct extension
+        temp_filename = f'temp_file{file_ext}'
+        with open(temp_filename, 'wb') as temp_file:
             temp_file.write(file_content)
         
-        uploaded_file = genai.upload_file('temp_file')
+        # Get the correct MIME type
+        mime_type, _ = mimetypes.guess_type(temp_filename)
+        if not mime_type:
+            mime_type = 'application/octet-stream'
+
+        uploaded_file = genai.upload_file(temp_filename, mime_type=mime_type)
 
         # For video files, wait for processing
         if file_type == 'video':
@@ -47,6 +64,10 @@ async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
         print(f"DEBUG: Using prompt: {prompt}")
 
         response = model.generate_content([uploaded_file, prompt])
+        
+        # Clean up the temporary file
+        os.remove(temp_filename)
+
         return response.text
 
     except Exception as e:
