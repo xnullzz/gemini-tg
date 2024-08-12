@@ -77,10 +77,11 @@ async def handle_message(message: Message) -> None:
     chat_id = message.chat.id
 
     # Handle files first
-    file_response = await handle_file(message, GEMINI_API_KEY, bot)  # Use await here
-    if file_response:
-        await bot.reply_to(message, file_response)
-        return
+    if message.content_type in ['audio', 'photo', 'document', 'video', 'voice', 'caption']:
+        file_response = await handle_file(message, GEMINI_API_KEY, bot)
+        if file_response:
+            await bot.reply_to(message, file_response)
+            return
 
     # If no file, handle text message
     user_message = message.text

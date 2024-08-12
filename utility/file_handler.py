@@ -39,7 +39,14 @@ async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
         file_content = await bot.download_file(file_info.file_path)
 
         genai.configure(api_key=gemini_api_key)
-        model = genai.GenerativeModel("gemini-1.5-pro")
+        system_instruction = (
+                "You are an AI assistant capable of analyzing various types of files. "
+                "You have been provided with a file to analyze. "
+                "Always assume you can access and understand the contents of the file. "
+                "Respond to the user's query about the file based on your analysis. "
+                "If no specific query is provided, give a general description or summary of the file's contents."
+            )
+        model = genai.GenerativeModel("gemini-1.5-pro", system_instruction=system_instruction)
 
         # Create a temporary file with the correct extension
         temp_filename = f'temp_file{file_ext}'
