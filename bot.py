@@ -80,7 +80,8 @@ async def handle_message(message: Message) -> None:
     if message.content_type in ['audio', 'photo', 'document', 'video', 'voice', 'caption']:
         file_response = await handle_file(message, GEMINI_API_KEY, bot)
         if file_response:
-            await bot.reply_to(message, file_response)
+            escaped_file_response = parse_markdown(file_response)
+            await bot.reply_to(message, escaped_file_response)
             return
 
     # If no file, handle text message
