@@ -1,58 +1,55 @@
 import google.generativeai as genai
 from telebot.types import Message
+import io
 
-async def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot as a parameter
-    """Retrieves a file from the message and sends it to Gemini for analysis.
-
-    Args:
-        message: The Telegram message object.
-        gemini_api_key: The API key for Google Gemini.
-        bot: The telebot instance.  # Add this line
-
-    Returns:
-        The response from Gemini, or None if no file was found.
-    """
+async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
+    """Retrieves a file from the message and sends it to Gemini for analysis."""
     file_id = None
     file_type = None
+    mime_type = None
 
     if message.photo:
         file_id = message.photo[-1].file_id
         file_type = 'image'
+        mime_type = 'image/jpeg'
     elif message.audio:
         file_id = message.audio.file_id
         file_type = 'audio'
+        mime_type = message.audio.mime_type
     elif message.document:
         file_id = message.document.file_id
         file_type = 'document'
+        mime_type = message.document.mime_type
 
-    if file_id:
-        try:
-            file_info = await bot.get_file(file_id)  # Use await here
-            downloaded_file = await bot.download_file(file_info.file_path)  # Use await here
+    if not file_id:
+        return None
 
-            genai.configure(api_key=gemini_api_key)
-            uploaded_file = genai.upload_file(downloaded_file)  # Removed media/
+    try:
+        file_info = await bot.get_file(file_id)
+        file_content = await bot.download_file(file_info.file_path)
 
-            model = genai.GenerativeModel("gemini-1.5-pro")  # Use gemini-1.5-pro
+        genai.configure(api_key=gemini_api_key)
+        model = genai.GenerativeModel("gemini-1.5-pro")
 
-            # Use caption as prompt if it exists
-            if message.caption:
-                prompt = message.caption
-                print(f"DEBUG: Using caption as prompt: {prompt}")
-            elif file_type == 'image':
-                prompt = "Describe this image in detail, including objects, people, and background."
-            elif file_type == 'audio':
-                prompt = "Transcribe this audio clip and summarize its content."
-            else:
-                prompt = "Summarize this document and identify any key topics or themes."
+        prompt = message.caption or get_default_prompt(file_type)
+        print(f"DEBUG: Using prompt: {prompt}")
 
-            print(f"DEBUG: Sending prompt to Gemini: {prompt}")
+        # Create a file-like object from bytes
+        file_obj = io.BytesIO(file_content)
+        file_obj.name = f"file.{mime_type.split('/')[-1]}"  # Set a filename
 
-            result = model.generate_content([uploaded_file, prompt])
-            return result.text
+        response = model.generate_content([file_obj, prompt])
+        return response.text
 
-        except Exception as e:
-            print(f"Error handling file: {e}")
-            return None
+    except Exception as e:
+        print(f"Error handling file: {e}")
+        return f"An error occurred while processing the file: {str(e)}"
 
-    return None
+def get_default_prompt(file_type: str) -> str:
+    """Returns a default prompt based on the file type."""
+    prompts = {
+        'image': "Describe this image in detail, including objects, people, and background.",
+        'audio': "Transcribe this audio clip and summarize its content.",
+        'document': "Summarize this document and identify any key topics or themes."
+    }
+    return prompts.get(file_type, "Analyze this file and provide a summary of its contents.")
