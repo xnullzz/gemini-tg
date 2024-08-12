@@ -70,7 +70,7 @@ async def handle_clear_prompt(message: Message) -> None:
     await bot.reply_to(message, "System prompt cleared.")
 
 
-@bot.message_handler(func=lambda message: True, content_types=['audio', 'photo', 'document'])
+@bot.message_handler(func=lambda message: True, content_types=['audio', 'photo', 'document', 'text', 'caption'])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=20, period=60)
 async def handle_message(message: Message) -> None:
