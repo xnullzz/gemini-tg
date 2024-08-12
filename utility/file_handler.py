@@ -1,25 +1,24 @@
 import google.generativeai as genai
 from telebot.types import Message
-import io
+import time
 
 async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
     """Retrieves a file from the message and sends it to Gemini for analysis."""
     file_id = None
     file_type = None
-    mime_type = None
 
     if message.photo:
         file_id = message.photo[-1].file_id
         file_type = 'image'
-        mime_type = 'image/jpeg'
-    elif message.audio:
-        file_id = message.audio.file_id
+    elif message.audio or message.voice:
+        file_id = message.audio.file_id if message.audio else message.voice.file_id
         file_type = 'audio'
-        mime_type = message.audio.mime_type
     elif message.document:
         file_id = message.document.file_id
         file_type = 'document'
-        mime_type = message.document.mime_type
+    elif message.video:
+        file_id = message.video.file_id
+        file_type = 'video'
 
     if not file_id:
         return None
@@ -31,14 +30,23 @@ async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
         genai.configure(api_key=gemini_api_key)
         model = genai.GenerativeModel("gemini-1.5-pro")
 
+        # Create a temporary file and upload it
+        with open('temp_file', 'wb') as temp_file:
+            temp_file.write(file_content)
+        
+        uploaded_file = genai.upload_file('temp_file')
+
+        # For video files, wait for processing
+        if file_type == 'video':
+            while uploaded_file.state.name == "PROCESSING":
+                print("Processing video...")
+                time.sleep(5)
+                uploaded_file = genai.get_file(uploaded_file.name)
+
         prompt = message.caption or get_default_prompt(file_type)
         print(f"DEBUG: Using prompt: {prompt}")
 
-        # Create a file-like object from bytes
-        file_obj = io.BytesIO(file_content)
-        file_obj.name = f"file.{mime_type.split('/')[-1]}"  # Set a filename
-
-        response = model.generate_content([file_obj, prompt])
+        response = model.generate_content([uploaded_file, prompt])
         return response.text
 
     except Exception as e:
@@ -49,7 +57,8 @@ def get_default_prompt(file_type: str) -> str:
     """Returns a default prompt based on the file type."""
     prompts = {
         'image': "Describe this image in detail, including objects, people, and background.",
-        'audio': "Transcribe this audio clip and summarize its content.",
-        'document': "Summarize this document and identify any key topics or themes."
+        'audio': "Describe this audio clip and summarize its content.",
+        'document': "Summarize this document and identify any key topics or themes.",
+        'video': "Describe this video clip in detail."
     }
     return prompts.get(file_type, "Analyze this file and provide a summary of its contents.")
