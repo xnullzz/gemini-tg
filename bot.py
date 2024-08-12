@@ -6,7 +6,7 @@ import telebot
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 from cachetools import TTLCache
-from utility.tools import parse_markdown
+from utility.tools import parse_markdown, split_long_message
 from utility.decorators import authorized_only, rate_limit
 from utility.system_prompt import SystemPromptManager
 from dotenv import load_dotenv
@@ -36,7 +36,39 @@ gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 # Initialize cache for chat history
 chat_history = TTLCache(maxsize=1000, ttl=3600)  # Store 1000 chat histories for 1 hour
 
-# ... (rest of the code remains the same)
+
+@bot.message_handler(commands=['start', 'help'])
+async def handle_start_help(message: Message) -> None:
+    await bot.reply_to(message, "Send me a message and I'll try my best to respond!")
+
+
+@bot.message_handler(commands=['set_prompt'])
+@authorized_only(bot, ALLOWED_USERNAMES)
+async def handle_set_prompt(message: Message) -> None:
+    chat_id = message.chat.id
+    try:
+        new_prompt = message.text.split(' ', 1)[1]
+        prompt_manager.set_prompt(chat_id, new_prompt)
+        await bot.reply_to(message, f"System prompt set to:\n```\n{new_prompt}\n```", parse_mode="MarkdownV2")
+    except IndexError:
+        await bot.reply_to(message, "Please provide a prompt after the command, e.g., `/set_prompt You are a helpful assistant.`")
+
+
+@bot.message_handler(commands=['get_prompt'])
+@authorized_only(bot, ALLOWED_USERNAMES)
+async def handle_get_prompt(message: Message) -> None:
+    chat_id = message.chat.id
+    current_prompt = prompt_manager.get_prompt(chat_id)
+    await bot.reply_to(message, f"Current system prompt:\n```\n{current_prompt}\n```", parse_mode="MarkdownV2")
+
+
+@bot.message_handler(commands=['clear_prompt'])
+@authorized_only(bot, ALLOWED_USERNAMES)
+async def handle_clear_prompt(message: Message) -> None:
+    chat_id = message.chat.id
+    prompt_manager.clear_prompt(chat_id)
+    await bot.reply_to(message, "System prompt cleared.")
+
 
 @bot.message_handler(func=lambda message: True)
 @authorized_only(bot, ALLOWED_USERNAMES)
@@ -65,7 +97,11 @@ async def handle_message(message: Message) -> None:
 
         escaped_response = parse_markdown(response)
 
-        await bot.reply_to(message, escaped_response, parse_mode="HTML")
+        # Split the response into smaller chunks if it exceeds the Telegram message limit
+        message_parts = split_long_message(escaped_response)
+
+        for part in message_parts:
+            await bot.reply_to(message, part, parse_mode="HTML")
 
     except Exception as e:
         logger.error(f"Error processing message: {e}")
@@ -74,4 +110,12 @@ async def handle_message(message: Message) -> None:
             "I encountered an error while processing your request. Please try again later.",
         )
 
-# ... (rest of the code remains the same)
+
+async def main():
+    try:
+        await bot.polling(non_stop=True, interval=0, request_timeout=60)
+    except Exception as e:
+        logger.error(f"Error during bot polling: {e}")
+
+if __name__ == '__main__':
+    asyncio.run(main())
