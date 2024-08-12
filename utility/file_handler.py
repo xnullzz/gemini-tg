@@ -1,6 +1,5 @@
 import google.generativeai as genai
 from telebot.types import Message
-from bot import bot  # Import the bot instance
 
 def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot as a parameter
     """Retrieves a file from the message and sends it to Gemini for analysis.
@@ -36,11 +35,11 @@ def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot a
 
             model = genai.GenerativeModel("gemini-1.5-flash")
             if file_type == 'image':
-                prompt = "Can you tell me about this image?"
+                prompt = message.text
             elif file_type == 'audio':
-                prompt = "Describe this audio clip."
+                prompt = message.text
             else:
-                prompt = "Give me a summary of this document."
+                prompt = message.text
 
             result = model.generate_content([uploaded_file, prompt])
             return result.text
