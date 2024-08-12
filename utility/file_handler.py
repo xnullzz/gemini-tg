@@ -1,5 +1,6 @@
 import google.generativeai as genai
 from telebot.types import Message
+from bot import bot  # Import the bot instance
 
 def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot as a parameter
     """Retrieves a file from the message and sends it to Gemini for analysis.
