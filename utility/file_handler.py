@@ -34,12 +34,19 @@ def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot a
             uploaded_file = genai.upload_file(downloaded_file)
 
             model = genai.GenerativeModel("gemini-1.5-flash")
-            if file_type == 'image':
-                prompt = message.text
+
+            # Use caption as prompt if it exists
+            if message.caption:
+                prompt = message.caption
+                print(f"DEBUG: Using caption as prompt: {prompt}")
+            elif file_type == 'image':
+                prompt = "Can you tell me about this image?"
             elif file_type == 'audio':
-                prompt = message.text
+                prompt = "Describe this audio clip."
             else:
-                prompt = message.text
+                prompt = "Give me a summary of this document."
+
+            print(f"DEBUG: Sending prompt to Gemini: {prompt}")
 
             result = model.generate_content([uploaded_file, prompt])
             return result.text
