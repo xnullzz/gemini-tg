@@ -20,7 +20,7 @@ async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
         file_ext = '.' + (message.audio.mime_type.split('/')[-1] if message.audio.mime_type else 'mp3')
     elif message.voice:
         file_id = message.voice.file_id
-        file_type = 'audio'
+        file_type = 'voice'
         file_ext = '.ogg'
     elif message.document:
         file_id = message.document.file_id
@@ -80,6 +80,7 @@ def get_default_prompt(file_type: str) -> str:
         'image': "Describe this image in detail, including objects, people, and background.",
         'audio': "Describe this audio clip and summarize its content.",
         'document': "Summarize this document and identify any key topics or themes.",
-        'video': "Describe this video clip in detail."
+        'video': "Describe this video clip in detail.",
+        'voice': "You've given a voice message of a user. Please reply to the user in the language user is talking to you in this message"
     }
     return prompts.get(file_type, "Analyze this file and provide a summary of its contents.")
