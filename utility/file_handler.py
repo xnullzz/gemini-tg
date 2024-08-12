@@ -1,7 +1,7 @@
 import google.generativeai as genai
 from telebot.types import Message
 
-def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot as a parameter
+async def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot as a parameter
     """Retrieves a file from the message and sends it to Gemini for analysis.
 
     Args:
@@ -27,11 +27,11 @@ def handle_file(message: Message, gemini_api_key: str, bot) -> str:  # Add bot a
 
     if file_id:
         try:
-            file_info = bot.get_file(file_id)
-            downloaded_file = bot.download_file(file_info.file_path)
+            file_info = await bot.get_file(file_id)  # Use await here
+            downloaded_file = await bot.download_file(file_info.file_path)  # Use await here
 
             genai.configure(api_key=gemini_api_key)
-            uploaded_file = genai.upload_file(media / downloaded_file)
+            uploaded_file = genai.upload_file(downloaded_file)  # Removed media/
 
             model = genai.GenerativeModel("gemini-1.5-pro")  # Use gemini-1.5-pro
 
