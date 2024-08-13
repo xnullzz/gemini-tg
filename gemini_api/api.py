@@ -1,7 +1,7 @@
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import asyncio
-from model_selector import ModelSelector
+from .model_selector import ModelSelector
 from typing import List, Dict, Any
 import logging
 

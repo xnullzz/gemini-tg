@@ -5,13 +5,12 @@ from typing import List, Dict
 import telebot
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from gemini_api.model_selector import ModelSelector
+from gemini_api import GeminiAPI, ModelSelector
 from cachetools import TTLCache
 from utility.tools import parse_markdown, split_long_message
 from utility.decorators import authorized_only, rate_limit
 from utility.system_prompt import SystemPromptManager
 from dotenv import load_dotenv
-from gemini_api.api import GeminiAPI
 from utility.file_handler import handle_file  # Import the new file handler
 
 # Load environment variables
