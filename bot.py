@@ -4,7 +4,7 @@ import os
 from typing import List, Dict
 import telebot
 from telebot.async_telebot import AsyncTeleBot
-from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
 from gemini_api import GeminiAPI, ModelSelector
 from cachetools import TTLCache
 from utility.formatting import parse_markdown, split_long_message
@@ -26,12 +26,25 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize bot and API
+# Initialize bot and gemini API keys
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 ALLOWED_USERNAMES = set(os.getenv("ALLOWED_USERNAMES", "").split(","))
 
+#Initialize the bot
 bot = AsyncTeleBot(TELEGRAM_BOT_TOKEN)
+bot.set_my_commands([
+    BotCommand("/start", "Start the bot"),
+    BotCommand("/help", "Show help information"),
+    BotCommand("/set_prompt", "Set a custom system prompt"),
+    BotCommand("/get_prompt", "View the current system prompt"),
+    BotCommand("/clear_prompt", "Clear the custom system prompt"),
+    BotCommand("/get_models", "List available AI models and set one if needed"),
+    BotCommand("/show_model", "Get model that is currently set"),
+    BotCommand("/reset_chat", "Clear chat history and start fresh")
+])
+
+
 gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
 # Initialize cache for chat history
@@ -63,7 +76,6 @@ async def handle_set_prompt(message: Message) -> None:
     except IndexError:
         await bot.reply_to(message, "Please provide a prompt after the command, e.g., `/set_prompt You are a helpful assistant.`")
 
-
 @bot.message_handler(commands=['get_prompt'])
 @authorized_only(bot, ALLOWED_USERNAMES)
 async def handle_get_prompt(message: Message) -> None:
@@ -77,6 +89,12 @@ async def handle_clear_prompt(message: Message) -> None:
     chat_id = message.chat.id
     prompt_manager.clear_prompt(chat_id)
     await bot.reply_to(message, "System prompt cleared.")
+
+@bot.message_handler(commands=['show_model'])
+@authorized_only(bot, ALLOWED_USERNAMES)
+async def handle_show_model(message: Message) -> None:
+    model = model_selector.model
+    await bot.reply_to(message, "The current model is: {model}")
 
 @bot.message_handler(commands=['get_models'])
 @authorized_only(bot, ALLOWED_USERNAMES)
