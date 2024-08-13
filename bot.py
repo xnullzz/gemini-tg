@@ -70,6 +70,13 @@ async def handle_clear_prompt(message: Message) -> None:
     await bot.reply_to(message, "System prompt cleared.")
 
 
+@bot.message_handler(commands=['get_model_list'])
+@authorized_only(bot, ALLOWED_USERNAMES)
+async def handle_model_list(message: Message) -> None:
+    chat_id = message.chat.id
+    model_list = gemini_api._get_model_list()
+    await bot.reply_to(message, model_list)
+
 @bot.message_handler(func=lambda message: True, content_types=['audio', 'photo', 'document', 'text', 'caption', 'voice'])
 @authorized_only(bot, ALLOWED_USERNAMES)
 @rate_limit(limit=20, period=60)
