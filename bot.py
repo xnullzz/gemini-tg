@@ -33,7 +33,7 @@ ALLOWED_USERNAMES = set(os.getenv("ALLOWED_USERNAMES", "").split(","))
 
 #Initialize the bot
 bot = AsyncTeleBot(TELEGRAM_BOT_TOKEN)
-def set_commands():
+def set_bot_commands():
     await bot.set_my_commands([
         BotCommand("/start", "Start the bot"),
         BotCommand("/help", "Show help information"),
@@ -44,8 +44,6 @@ def set_commands():
         BotCommand("/show_model", "Get model that is currently set"),
         BotCommand("/reset_chat", "Clear chat history and start fresh")
     ])
-
-set_commands()
 
 gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
@@ -159,6 +157,7 @@ async def handle_message(message: Message) -> None:
 
 async def main():
     try:
+        await set_bot_commands()
         await bot.polling(non_stop=True, interval=0, request_timeout=60)
     except Exception as e:
         logger.error(f"Error during bot polling: {e}")
