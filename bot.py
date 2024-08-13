@@ -7,7 +7,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from gemini_api import GeminiAPI, ModelSelector
 from cachetools import TTLCache
-from utility.tools import parse_markdown, split_long_message
+from utility.formatting import parse_markdown, split_long_message
 from utility.decorators import authorized_only, rate_limit
 from utility.system_prompt import SystemPromptManager
 from dotenv import load_dotenv
@@ -61,7 +61,6 @@ async def handle_get_prompt(message: Message) -> None:
     chat_id = message.chat.id
     current_prompt = prompt_manager.get_prompt(chat_id)
     await bot.reply_to(message, f"Current system prompt:\n```\n{current_prompt}\n```", parse_mode="MarkdownV2")
-
 
 @bot.message_handler(commands=['clear_prompt'])
 @authorized_only(bot, ALLOWED_USERNAMES)
