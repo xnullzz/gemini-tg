@@ -4,13 +4,14 @@ import os
 from typing import List, Dict
 import telebot
 from telebot.async_telebot import AsyncTeleBot
-from telebot.types import Message
+from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from gemini_api import ModelSelector
 from cachetools import TTLCache
 from utility.tools import parse_markdown, split_long_message
 from utility.decorators import authorized_only, rate_limit
 from utility.system_prompt import SystemPromptManager
 from dotenv import load_dotenv
-from gemini_api import GeminiAPI
+from gemini_api.api import GeminiAPI
 from utility.file_handler import handle_file  # Import the new file handler
 
 # Load environment variables
@@ -18,6 +19,7 @@ load_dotenv()
 
 # Initialize the SystemPromptManager
 prompt_manager = SystemPromptManager()
+model_selector = ModelSelector()
 
 # Configure logging
 logging.basicConfig(
@@ -69,13 +71,21 @@ async def handle_clear_prompt(message: Message) -> None:
     prompt_manager.clear_prompt(chat_id)
     await bot.reply_to(message, "System prompt cleared.")
 
-
-@bot.message_handler(commands=['get_model_list'])
+@bot.message_handler(commands=['get_models'])
 @authorized_only(bot, ALLOWED_USERNAMES)
-async def handle_model_list(message: Message) -> None:
-    chat_id = message.chat.id
-    model_list = gemini_api._get_model_list()
-    await bot.reply_to(message, model_list)
+async def handle_get_models(message: Message) -> None:
+    models = model_selector.get_model_list()
+    markup = InlineKeyboardMarkup()
+    for model in models:
+        markup.add(InlineKeyboardButton(model, callback_data=f"set_model:{model}"))
+    await bot.reply_to(message, "Here is model selection:", reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('set_model:'))
+async def callback_set_model(call):
+    model = call.data.split(':')[1]
+    gemini_api.model_selector.model = model
+    await bot.answer_callback_query(call.id, f"Model set to {model}")
+    await bot.send_message(call.message.chat.id, f"Model has been set to {model}")
 
 @bot.message_handler(func=lambda message: True, content_types=['audio', 'photo', 'document', 'text', 'caption', 'voice'])
 @authorized_only(bot, ALLOWED_USERNAMES)
