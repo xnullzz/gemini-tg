@@ -33,7 +33,7 @@ ALLOWED_USERNAMES = set(os.getenv("ALLOWED_USERNAMES", "").split(","))
 
 #Initialize the bot
 bot = AsyncTeleBot(TELEGRAM_BOT_TOKEN)
-await def set_bot_commands():
+async def set_bot_commands():
     await bot.set_my_commands([
         BotCommand("/start", "Start the bot"),
         BotCommand("/help", "Show help information"),
