@@ -39,9 +39,18 @@ chat_history = TTLCache(maxsize=1000, ttl=3600)  # Store 1000 chat histories for
 
 
 @bot.message_handler(commands=['start', 'help'])
+@authorized_only(bot, ALLOWED_USERNAMES)
 async def handle_start_help(message: Message) -> None:
     await bot.reply_to(message, "Send me a message and I'll try my best to respond!")
 
+
+@bot.message_handler(commands=['reset_chat'])
+@authorized_only(bot, ALLOWED_USERNAMES)
+async def handle_reset_chat(message: Message) -> None:
+    chat_id = message.chat.id
+    if chat_id in chat_history:
+        del chat_history[chat_id]
+    await bot.reply_to(message, "Chat history has been reset.")
 
 @bot.message_handler(commands=['set_prompt'])
 @authorized_only(bot, ALLOWED_USERNAMES)
