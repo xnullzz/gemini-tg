@@ -94,7 +94,7 @@ async def handle_clear_prompt(message: Message) -> None:
 @authorized_only(bot, ALLOWED_USERNAMES)
 async def handle_show_model(message: Message) -> None:
     model = model_selector.model
-    await bot.reply_to(message, "The current model is: {model}")
+    await bot.reply_to(message, f"The current model is: {model}")
 
 @bot.message_handler(commands=['get_models'])
 @authorized_only(bot, ALLOWED_USERNAMES)
