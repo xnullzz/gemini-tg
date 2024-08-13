@@ -32,11 +32,11 @@ class GeminiAPI:
         )
 
     def _get_model_list(self) -> List[str]:
-    model_list = []
-    for model in genai.list_models():
-        if "generateContent" in model.supported_generation_methods:
-            model_list.append(model)
-    return model_list
+        model_list = []
+        for model in genai.list_models():
+            if "generateContent" in model.supported_generation_methods:
+                model_list.append(model)
+        return model_list
     
     async def generate_chat(self, messages: List[Dict[str, str]], system_prompt: str = None) -> str:
         try:
