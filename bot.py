@@ -33,8 +33,8 @@ ALLOWED_USERNAMES = set(os.getenv("ALLOWED_USERNAMES", "").split(","))
 
 #Initialize the bot
 bot = AsyncTeleBot(TELEGRAM_BOT_TOKEN)
-async def set_commands()
-    bot.set_my_commands([
+def set_commands():
+    await bot.set_my_commands([
         BotCommand("/start", "Start the bot"),
         BotCommand("/help", "Show help information"),
         BotCommand("/set_prompt", "Set a custom system prompt"),
@@ -45,7 +45,7 @@ async def set_commands()
         BotCommand("/reset_chat", "Clear chat history and start fresh")
     ])
 
-await set_commands()
+set_commands()
 
 gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
 
