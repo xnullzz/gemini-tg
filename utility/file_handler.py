@@ -1,10 +1,11 @@
 import google.generativeai as genai
 from telebot.types import Message
+from typing import Dict, List
 import time
 import mimetypes
 import os
 
-async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
+async def handle_file(message: Message, gemini_api_key: str, bot, chat_history: Dict[int, List[Dict[str, str]]]) -> str:
     """Retrieves a file from the message and sends it to Gemini for analysis."""
     file_id = None
     file_type = None
@@ -74,6 +75,12 @@ async def handle_file(message: Message, gemini_api_key: str, bot) -> str:
 
         response = model.generate_content([uploaded_file, prompt])
         
+        chat_id = message.chat.id
+        if chat_id not in chat_history:
+            chat_history[chat_id] = []
+        chat_history[chat_id].append({"role": "user", "parts": [f"[File: {file_type}] {prompt}"]})
+        chat_history[chat_id].append({"role": "model", "parts": [response.text]})
+
         # Clean up the temporary file
         os.remove(temp_filename)
 

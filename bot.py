@@ -120,7 +120,7 @@ async def handle_message(message: Message) -> None:
 
     # Handle files first
     if message.content_type in ['audio', 'photo', 'document', 'video', 'voice', 'caption']:
-        file_response = await handle_file(message, GEMINI_API_KEY, bot)
+        file_response = await handle_file(message, GEMINI_API_KEY, bot, chat_history)
         if file_response:
             escaped_file_response = parse_markdown(file_response)
             await bot.reply_to(message, escaped_file_response, parse_mode="HTML")
