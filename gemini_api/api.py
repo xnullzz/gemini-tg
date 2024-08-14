@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class GeminiAPI:
-    def __init__(self, api_key: str, model: str = "gemini-1.5-pro", model_selector: ModelSelector):
+    def __init__(self, api_key: str, model_selector: ModelSelector, model: str = "gemini-1.5-pro"):
         genai.configure(api_key=api_key)
         self.model_selector = model_selector
         self.temperature = 0.7
