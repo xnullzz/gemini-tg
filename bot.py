@@ -45,7 +45,7 @@ async def set_bot_commands():
         BotCommand("/reset_chat", "Clear chat history and start fresh")
     ])
 
-gemini_api = GeminiAPI(api_key=GEMINI_API_KEY)
+gemini_api = GeminiAPI(api_key=GEMINI_API_KEY, model_selector=model_selector)
 
 # Initialize cache for chat history
 chat_history = TTLCache(maxsize=1000, ttl=3600)  # Store 1000 chat histories for 1 hour
@@ -108,7 +108,7 @@ async def handle_get_models(message: Message) -> None:
 @bot.callback_query_handler(func=lambda call: call.data.startswith('set_model:'))
 async def callback_set_model(call):
     model = call.data.split(':')[1]
-    gemini_api.model_selector.model = model
+    model_selector.model = model
     await bot.answer_callback_query(call.id, f"Model set to {model}")
     await bot.send_message(call.message.chat.id, f"Model has been set to {model}")
 

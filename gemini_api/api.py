@@ -8,9 +8,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class GeminiAPI:
-    def __init__(self, api_key: str, model: str = "gemini-1.5-pro"):
+    def __init__(self, api_key: str, model: str = "gemini-1.5-pro", model_selector: ModelSelector):
         genai.configure(api_key=api_key)
-        self.model_selector = ModelSelector()
+        self.model_selector = model_selector
         self.temperature = 0.7
         self.max_output_tokens = 8192
         self.safety_settings: Dict[HarmCategory, HarmBlockThreshold] = {
