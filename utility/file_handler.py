@@ -65,10 +65,16 @@ async def handle_file(message: Message, gemini_api_key: str, bot, chat_history: 
 
         # For video files, wait for processing
         if file_type == 'video':
-            while uploaded_file.state.name == "PROCESSING":
-                print("Processing video...")
+            max_retries = 10
+            retry_count = 0
+            while uploaded_file.state.name != "ACTIVE" and retry_count < max_retries:
+                print(f"Video processing... Attempt {retry_count + 1}")
                 time.sleep(5)
                 uploaded_file = genai.get_file(uploaded_file.name)
+                retry_count += 1
+    
+            if uploaded_file.state.name != "ACTIVE":
+                raise Exception(f"Video processing failed after {max_retries} attempts") 
 
         prompt = message.caption or get_default_prompt(file_type)
         print(f"DEBUG: Using prompt: {prompt}")
